@@ -5,39 +5,33 @@
 
 
 /* =========================================================
-   設定
+   所持データ
 ========================================================= */
 
 const STORAGE_KEY = "aikatsu_encore_owned";
 
-const GRID_STORAGE_KEY = "aikatsu_encore_grid";
-
-const MAX_OWNED = 3;
+let owned = {};
+// {
+//   "E1-01_PR": 3,
+//   "E1-05_R": 1,
+//   ...
+// }
 
 
 /* =========================================================
-   所持データ
+   表示設定
 ========================================================= */
 
-let owned = {};
+// false = 通常
+// true  = 拡大
+//
+// スマホの場合
+// 通常 → 横3枚
+// 拡大 → 横6枚
+//
+// PCでは常に横10枚なので、この設定は実質影響なし。
 
-
-/*
-  タブごとの表示枚数
-
-  例：
-  {
-    all: 3,
-    "1": 6,
-    promo: 3
-  }
-*/
-
-let gridSettings = {
-  all: 3,
-  "1": 3,
-  promo: 3
-};
+let isExpanded = false;
 
 
 /* =========================================================
@@ -45,27 +39,29 @@ let gridSettings = {
 ========================================================= */
 
 function loadOwned() {
-
   try {
+    const saved = localStorage.getItem(STORAGE_KEY);
 
-    const saved =
-      JSON.parse(
-        localStorage.getItem(STORAGE_KEY)
-      );
+    if (!saved) {
+      owned = {};
+      return;
+    }
+
+    const parsed = JSON.parse(saved);
 
     if (
-      saved &&
-      typeof saved === "object"
+      parsed &&
+      typeof parsed === "object" &&
+      !Array.isArray(parsed)
     ) {
-      owned = saved;
+      owned = parsed;
     } else {
       owned = {};
     }
 
-  } catch {
-
+  } catch (error) {
+    console.warn("所持データの読み込みに失敗しました。", error);
     owned = {};
-
   }
 }
 
@@ -75,64 +71,52 @@ function loadOwned() {
 ========================================================= */
 
 function saveOwned() {
-
   localStorage.setItem(
     STORAGE_KEY,
     JSON.stringify(owned)
   );
-
 }
 
 
 /* =========================================================
-   表示設定読み込み
+   所持枚数取得
 ========================================================= */
 
-function loadGridSettings() {
+function getCardCount(cardId) {
+  const count = Number(owned[cardId] || 0);
 
-  try {
+  if (count < 0) return 0;
+  if (count > 3) return 3;
 
-    const saved =
-      JSON.parse(
-        localStorage.getItem(GRID_STORAGE_KEY)
-      );
+  return count;
+}
 
-    if (
-      saved &&
-      typeof saved === "object"
-    ) {
 
-      gridSettings = {
-        ...gridSettings,
-        ...saved
-      };
+/* =========================================================
+   所持カード種類数
+========================================================= */
 
-    }
+function getOwnedCount(cardList = CARDS) {
+  return cardList.filter(card => {
+    return getCardCount(card.id) > 0;
+  }).length;
+}
 
-  } catch {
 
-    gridSettings = {
-      all: 3,
-      "1": 3,
-      promo: 3
-    };
+/* =========================================================
+   所持率
+========================================================= */
 
+function getPercentage(cardList = CARDS) {
+  if (!cardList.length) {
+    return "0.0";
   }
 
-}
-
-
-/* =========================================================
-   表示設定保存
-========================================================= */
-
-function saveGridSettings() {
-
-  localStorage.setItem(
-    GRID_STORAGE_KEY,
-    JSON.stringify(gridSettings)
-  );
-
+  return (
+    getOwnedCount(cardList) /
+    cardList.length *
+    100
+  ).toFixed(1);
 }
 
 
@@ -141,117 +125,225 @@ function saveGridSettings() {
 ========================================================= */
 
 function getActiveTab() {
-
-  const activeTab =
-    document.querySelector(
-      ".tab.active"
-    );
+  const activeTab = document.querySelector(".tab.active");
 
   return activeTab
     ? activeTab.dataset.tab
     : "all";
-
 }
 
 
 /* =========================================================
-   現在の表示枚数取得
+   タブに対応するカード一覧
 ========================================================= */
 
-function getCurrentColumns() {
+function getCardsForTab(tab) {
 
-  const tab =
-    getActiveTab();
+  if (tab === "all") {
+    return CARDS;
+  }
 
-  return gridSettings[tab] === 6
-    ? 6
-    : 3;
-
+  return CARDS.filter(card => {
+    return card.series === tab;
+  });
 }
 
 
 /* =========================================================
-   所持カード数
+   シリーズ名
 ========================================================= */
 
-function getOwnedCount() {
+function getSeriesLabel(series) {
 
-  return Object.values(owned)
-    .filter(
-      count => Number(count) > 0
+  if (series === "promo") {
+    return "プロモーション";
+  }
+
+  /*
+    E1 → 1弾
+    E2 → 2弾
+    E50 → 50弾
+
+    cards.js側では
+    series: "1"
+    series: "2"
+    ...
+    のようにしても、
+    "E1" のようにしても対応。
+  */
+
+  const number = String(series).match(/\d+/);
+
+  if (number) {
+    return `${number[0]}弾`;
+  }
+
+  return String(series);
+}
+
+
+/* =========================================================
+   タブ生成
+========================================================= */
+
+/*
+  cards.jsに追加されたシリーズを自動的にタブへ追加する。
+
+  例：
+
+  E1
+  E2
+  E3
+  E4
+  promo
+
+  のようにカードが追加されれば、
+  タブも自動的に追加される。
+*/
+
+function setupTabs() {
+
+  const tabsContainer =
+    document.querySelector(".tabs");
+
+  if (!tabsContainer) {
+    return;
+  }
+
+  /*
+    cards.js内に登場するseriesを取得
+  */
+
+  const seriesList = [
+    ...new Set(
+      CARDS.map(card => String(card.series))
     )
-    .length;
+  ];
 
-}
+  /*
+    数字シリーズを先に並べる。
+    promoなど文字列シリーズは最後。
+  */
 
+  seriesList.sort((a, b) => {
 
-/* =========================================================
-   所持率
-========================================================= */
+    const aNumber = a.match(/\d+/);
+    const bNumber = b.match(/\d+/);
 
-function getPercentage() {
+    if (aNumber && bNumber) {
+      return (
+        Number(aNumber[0]) -
+        Number(bNumber[0])
+      );
+    }
 
-  return CARDS.length
+    if (aNumber) return -1;
+    if (bNumber) return 1;
 
-    ? (
-        getOwnedCount()
-        /
-        CARDS.length
-        *
-        100
-      ).toFixed(1)
-
-    : "0.0";
-
-}
-
-
-/* =========================================================
-   カードグリッドの枚数反映
-========================================================= */
-
-function applyGridColumns() {
-
-  const grid =
-    document.getElementById(
-      "cardGrid"
-    );
-
-  if (!grid) return;
-
-  const columns =
-    getCurrentColumns();
-
-  grid.classList.toggle(
-    "columns-3",
-    columns === 3
-  );
-
-  grid.classList.toggle(
-    "columns-6",
-    columns === 6
-  );
+    return a.localeCompare(b);
+  });
 
 
   /*
-    現在選択されているボタン
+    現在のタブを記録
   */
 
-  document
-    .querySelectorAll(
-      ".grid-size-btn"
-    )
-    .forEach(button => {
+  const currentTab =
+    tabsContainer.querySelector(".tab.active")
+      ?.dataset.tab || "all";
 
-      button.classList.toggle(
-        "active",
-        Number(
-          button.dataset.columns
-        ) === columns
-      );
+
+  /*
+    既存タブをすべて削除
+  */
+
+  tabsContainer.innerHTML = "";
+
+
+  /*
+    すべて
+  */
+
+  const allTab =
+    document.createElement("button");
+
+  allTab.className = "tab";
+
+  allTab.type = "button";
+
+  allTab.dataset.tab = "all";
+
+  allTab.textContent = "すべて";
+
+  tabsContainer.appendChild(allTab);
+
+
+  /*
+    各シリーズ
+  */
+
+  seriesList.forEach(series => {
+
+    const tab =
+      document.createElement("button");
+
+    tab.className = "tab";
+
+    tab.type = "button";
+
+    tab.dataset.tab = series;
+
+    tab.textContent =
+      getSeriesLabel(series);
+
+    tabsContainer.appendChild(tab);
+  });
+
+
+  /*
+    以前のタブを復元
+  */
+
+  const active =
+    tabsContainer.querySelector(
+      `.tab[data-tab="${CSS.escape(currentTab)}"]`
+    );
+
+  if (active) {
+    active.classList.add("active");
+  } else {
+    allTab.classList.add("active");
+  }
+
+
+  /*
+    クリックイベント
+  */
+
+  tabsContainer
+    .querySelectorAll(".tab")
+    .forEach(tab => {
+
+      tab.addEventListener("click", () => {
+
+        tabsContainer
+          .querySelectorAll(".tab")
+          .forEach(item => {
+            item.classList.remove("active");
+          });
+
+        tab.classList.add("active");
+
+        render();
+
+        updateStats();
+
+        updateDisplayToggle();
+
+        shareToX();
+      });
 
     });
-
 }
 
 
@@ -261,64 +353,67 @@ function applyGridColumns() {
 
 function render() {
 
+  const grid =
+    document.getElementById("cardGrid");
+
+  if (!grid) {
+    return;
+  }
+
+
+  /*
+    現在のタブ
+  */
+
   const activeTab =
     getActiveTab();
 
-  const grid =
-    document.getElementById(
-      "cardGrid"
-    );
+
+  /*
+    対象カード
+  */
+
+  const list =
+    getCardsForTab(activeTab);
+
+
+  /*
+    一旦クリア
+  */
 
   grid.innerHTML = "";
 
 
   /*
-    表示枚数
+    拡大状態をCSSへ反映
   */
 
-  applyGridColumns();
+  if (isExpanded) {
+    grid.classList.add("expanded");
+  } else {
+    grid.classList.remove("expanded");
+  }
 
 
   /*
-    タブでカードを絞り込み
-  */
-
-  const list =
-    CARDS.filter(card =>
-
-      activeTab === "all"
-        ||
-      card.series === activeTab
-
-    );
-
-
-  /*
-    カード生成
+    カードを生成
   */
 
   list.forEach(card => {
 
     const count =
-      Math.min(
-        Number(
-          owned[card.id] || 0
-        ),
-        MAX_OWNED
-      );
+      getCardCount(card.id);
 
+
+    /*
+      カード本体
+    */
 
     const item =
-      document.createElement(
-        "div"
-      );
+      document.createElement("div");
 
     item.className =
-      `card-item ${
-        count === 0
-          ? "unowned"
-          : ""
-      }`;
+      `card-item ${count === 0 ? "unowned" : ""}`;
 
     item.dataset.id =
       card.id;
@@ -329,52 +424,47 @@ function render() {
     */
 
     const img =
-      document.createElement(
-        "img"
-      );
+      document.createElement("img");
 
     img.src =
       card.image;
 
     img.alt =
-      card.name;
+      card.name || card.id;
 
     img.loading =
       "lazy";
 
 
     /*
-      横長カードを90度回転
+      横長カードなら90度回転
     */
 
-    const rotateIfLandscape =
-      () => {
+    const rotateIfLandscape = () => {
 
-        if (
-          img.naturalWidth >
-          img.naturalHeight
-        ) {
-
-          img.classList.add(
-            "rotate-90"
-          );
-
-        }
-
-      };
+      if (
+        img.naturalWidth > 0 &&
+        img.naturalHeight > 0 &&
+        img.naturalWidth > img.naturalHeight
+      ) {
+        img.classList.add("rotate-90");
+      } else {
+        img.classList.remove("rotate-90");
+      }
+    };
 
 
-    img.onload =
-      rotateIfLandscape;
+    img.addEventListener(
+      "load",
+      rotateIfLandscape
+    );
 
 
     if (
       img.complete &&
       img.naturalWidth > 0
     ) {
-
       rotateIfLandscape();
-
     }
 
 
@@ -383,26 +473,18 @@ function render() {
     */
 
     const badge =
-      document.createElement(
-        "div"
-      );
+      document.createElement("div");
 
     badge.className =
-      `badge ${
-        count === 0
-          ? "hidden"
-          : ""
-      }`;
+      `badge ${count === 0 ? "hidden" : ""}`;
 
 
-    /*
-      3枚以上は 3+
-    */
-
-    badge.textContent =
-      count >= 3
-        ? "3+"
-        : String(count);
+    if (count >= 3) {
+      badge.textContent = "3+";
+    } else {
+      badge.textContent =
+        String(count);
+    }
 
 
     /*
@@ -413,31 +495,21 @@ function render() {
       "click",
       () => {
 
-        const current =
-          Number(
-            owned[card.id] || 0
-          );
-
-
         /*
-          0 → 1 → 2 → 3 → 0
+          0 → 1
+          1 → 2
+          2 → 3
+          3 → 0
         */
 
         const next =
-          (current + 1)
-          %
-          (MAX_OWNED + 1);
+          (getCardCount(card.id) + 1) % 4;
 
 
         if (next === 0) {
-
           delete owned[card.id];
-
         } else {
-
-          owned[card.id] =
-            next;
-
+          owned[card.id] = next;
         }
 
 
@@ -448,150 +520,163 @@ function render() {
         updateStats();
 
         shareToX();
-
       }
     );
 
 
-    item.append(
-      img,
-      badge
-    );
+    /*
+      DOMへ追加
+    */
 
-    grid.appendChild(
-      item
-    );
+    item.appendChild(img);
+
+    item.appendChild(badge);
+
+    grid.appendChild(item);
 
   });
-
 }
 
 
 /* =========================================================
-   所持率表示
+   所持率表示更新
 ========================================================= */
 
 function updateStats() {
 
-  document
-    .getElementById(
-      "totalCount"
-    )
-    .textContent =
-      CARDS.length;
+  const activeTab =
+    getActiveTab();
+
+  const list =
+    getCardsForTab(activeTab);
 
 
-  document
-    .getElementById(
-      "ownedCount"
-    )
-    .textContent =
-      getOwnedCount();
+  const totalCount =
+    document.getElementById("totalCount");
+
+  const ownedCount =
+    document.getElementById("ownedCount");
+
+  const ownedPercentage =
+    document.getElementById("ownedPercentage");
 
 
-  document
-    .getElementById(
-      "ownedPercentage"
-    )
-    .textContent =
-      getPercentage();
+  if (totalCount) {
+    totalCount.textContent =
+      list.length;
+  }
 
+
+  if (ownedCount) {
+    ownedCount.textContent =
+      getOwnedCount(list);
+  }
+
+
+  if (ownedPercentage) {
+    ownedPercentage.textContent =
+      getPercentage(list);
+  }
 }
 
 
 /* =========================================================
-   共有URL
-=========================================================
-
-   1カード = 2bit
-
-   0 = 0枚
-   1 = 1枚
-   2 = 2枚
-   3 = 3枚
-
-   4カード = 8bit = 1byte
-
-   その後 Base64URL 化。
-
-   さらに末尾の 0カードを削ることで、
-   未所持カードが多い状態ではURLを短縮する。
+   共有データ圧縮
 ========================================================= */
 
-
 /*
-  Base64URLエンコード
+  1カード = 2bit
+
+  00 = 0枚
+  01 = 1枚
+  10 = 2枚
+  11 = 3枚
+
+  4カード = 1byte
+
+  例：
+
+  [0, 1, 2, 3]
+
+  ↓
+
+  00 01 10 11
+
+  ↓
+
+  00011011
+
+  ↓
+
+  0x1B
+
+
+  その後Base64URL化する。
+
+  さらに末尾の0枚カードは
+  データそのものから省略する。
+
+  そのため、
+
+  全カード0枚
+  → 空文字
+
+  先頭だけ3枚
+  → 非常に短い
+
+  というURLになる。
 */
 
-function base64UrlEncode(bytes) {
+
+/* =========================================================
+   Base64URLエンコード
+========================================================= */
+
+function bytesToBase64Url(bytes) {
 
   let binary = "";
 
-  bytes.forEach(
-    byte => {
-      binary += String.fromCharCode(
-        byte
-      );
-    }
-  );
+  for (let i = 0; i < bytes.length; i++) {
+    binary += String.fromCharCode(bytes[i]);
+  }
 
+  const base64 =
+    btoa(binary);
 
-  return btoa(binary)
-
-    .replace(
-      /\+/g,
-      "-"
-    )
-
-    .replace(
-      /\//g,
-      "_"
-    )
-
-    .replace(
-      /=/g,
-      ""
-    );
-
+  return base64
+    .replace(/\+/g, "-")
+    .replace(/\//g, "_")
+    .replace(/=+$/g, "");
 }
 
 
-/*
-  Base64URLデコード
-*/
+/* =========================================================
+   Base64URLデコード
+========================================================= */
 
-function base64UrlDecode(str) {
+function base64UrlToBytes(str) {
 
-  const base64 =
+  if (!str) {
+    return new Uint8Array();
+  }
+
+  let base64 =
     str
-
-      .replace(
-        /-/g,
-        "+"
-      )
-
-      .replace(
-        /_/g,
-        "/"
-      );
+      .replace(/-/g, "+")
+      .replace(/_/g, "/");
 
 
-  const padding =
-    "=".repeat(
-      (4 - (base64.length % 4)) % 4
-    );
+  while (base64.length % 4 !== 0) {
+    base64 += "=";
+  }
 
 
   const binary =
-    atob(
-      base64 + padding
-    );
+    atob(base64);
 
 
   const bytes =
-    new Uint8Array(
-      binary.length
-    );
+    new Uint8Array(binary.length);
 
 
   for (
@@ -599,37 +684,29 @@ function base64UrlDecode(str) {
     i < binary.length;
     i++
   ) {
-
     bytes[i] =
       binary.charCodeAt(i);
-
   }
 
 
   return bytes;
-
 }
 
 
-/*
-  状態を圧縮
-*/
+/* =========================================================
+   所持状況 → 圧縮データ
+========================================================= */
 
 function encodeState() {
 
   /*
-    まずカードごとの値を作る
+    全カードの所持数を取得
   */
 
   const counts =
-    CARDS.map(card =>
-      Math.min(
-        Number(
-          owned[card.id] || 0
-        ),
-        MAX_OWNED
-      )
-    );
+    CARDS.map(card => {
+      return getCardCount(card.id);
+    });
 
 
   /*
@@ -637,79 +714,73 @@ function encodeState() {
 
     例：
 
-    [1,2,0,0,0,0]
+    [3, 1, 0, 0, 0]
 
     ↓
 
-    [1,2]
+    [3, 1]
   */
 
-  let length =
-    counts.length;
+  let last =
+    counts.length - 1;
 
 
   while (
-    length > 0 &&
-    counts[length - 1] === 0
+    last >= 0 &&
+    counts[last] === 0
   ) {
-
-    length--;
-
+    last--;
   }
 
 
   /*
-    0枚しかない場合
-
-    → 空文字
-
-    つまり
-
-    URL#xxx
-
-    ではなく
-
-    URL
-
-    にできる
+    全部0枚なら空文字
   */
 
-  if (length === 0) {
+  if (last < 0) {
     return "";
   }
 
 
   /*
-    4カード = 1byte
+    必要なカード数
+  */
 
-    2bitずつ詰める
+  const usedCount =
+    last + 1;
 
-    card 0 : bit 7-6
-    card 1 : bit 5-4
-    card 2 : bit 3-2
-    card 3 : bit 1-0
+
+  /*
+    4枚につき1byte
+
+    Math.ceil(usedCount / 4)
   */
 
   const byteLength =
-    Math.ceil(
-      length / 4
-    );
+    Math.ceil(usedCount / 4);
 
 
   const bytes =
-    new Uint8Array(
-      byteLength
-    );
+    new Uint8Array(byteLength);
 
+
+  /*
+    2bitずつ詰める
+
+    1枚目 → bits 0-1
+    2枚目 → bits 2-3
+    3枚目 → bits 4-5
+    4枚目 → bits 6-7
+  */
 
   for (
     let i = 0;
-    i < length;
+    i < usedCount;
     i++
   ) {
 
-    const value =
-      counts[i] & 3;
+    const count =
+      counts[i] & 0b11;
 
 
     const byteIndex =
@@ -717,26 +788,21 @@ function encodeState() {
 
 
     const shift =
-      6 -
       (i % 4) * 2;
 
 
     bytes[byteIndex] |=
-      value << shift;
-
+      count << shift;
   }
 
 
-  return base64UrlEncode(
-    bytes
-  );
-
+  return bytesToBase64Url(bytes);
 }
 
 
-/*
-  共有状態を復元
-*/
+/* =========================================================
+   圧縮データ → 所持状況
+========================================================= */
 
 function decodeState(hash) {
 
@@ -748,21 +814,26 @@ function decodeState(hash) {
 
 
     const bytes =
-      base64UrlDecode(
-        hash
-      );
+      base64UrlToBytes(hash);
 
 
     const result = {};
 
 
     /*
-      1byteから4カードを復元
+      1byte = 4カード
     */
+
+    const maxCards =
+      Math.min(
+        CARDS.length,
+        bytes.length * 4
+      );
+
 
     for (
       let i = 0;
-      i < CARDS.length;
+      i < maxCards;
       i++
     ) {
 
@@ -770,58 +841,37 @@ function decodeState(hash) {
         Math.floor(i / 4);
 
 
-      /*
-        URLのデータより先なら
-        0枚扱い
-      */
-
-      if (
-        byteIndex >=
-        bytes.length
-      ) {
-
-        break;
-
-      }
-
-
       const shift =
-        6 -
         (i % 4) * 2;
 
 
       const count =
-        (
-          bytes[byteIndex]
-          >>
-          shift
-        ) & 3;
+        (bytes[byteIndex] >> shift) & 0b11;
 
 
       if (count > 0) {
-
-        result[
-          CARDS[i].id
-        ] = count;
-
+        result[CARDS[i].id] =
+          count;
       }
-
     }
 
 
     return result;
 
-  } catch {
+  } catch (error) {
+
+    console.warn(
+      "共有データの読み込みに失敗しました。",
+      error
+    );
 
     return null;
-
   }
-
 }
 
 
 /* =========================================================
-   ハッシュを適用
+   URLハッシュから所持状況を適用
 ========================================================= */
 
 function applyHash() {
@@ -831,8 +881,9 @@ function applyHash() {
 
 
   /*
-    ハッシュがない
-    → 通常の保存データを使用
+    ハッシュなし
+
+    → 通常のlocalStorageを使用
   */
 
   if (!hash) {
@@ -844,15 +895,21 @@ function applyHash() {
     decodeState(hash);
 
 
-  if (decoded !== null) {
-
-    owned =
-      decoded;
-
-    saveOwned();
-
+  if (decoded === null) {
+    return;
   }
 
+
+  /*
+    共有URLを開いた場合は
+    URLのデータを優先する
+  */
+
+  owned =
+    decoded;
+
+
+  saveOwned();
 }
 
 
@@ -866,123 +923,162 @@ function shareToX() {
     encodeState();
 
 
-  const baseUrl =
+  /*
+    ハッシュを作成
+
+    0枚だけならハッシュ自体を付けない。
+  */
+
+  const hash =
+    state
+      ? `#${state}`
+      : "";
+
+
+  const url =
     location.origin +
     location.pathname +
-    location.search;
+    location.search +
+    hash;
 
 
   /*
-    何も所持していない場合は
-    ハッシュ自体を付けない
+    現在のタブの所持率を表示
   */
 
-  const url =
-    state
+  const activeTab =
+    getActiveTab();
 
-      ? baseUrl + "#" + state
 
-      : baseUrl;
+  const list =
+    getCardsForTab(activeTab);
+
+
+  const percentage =
+    getPercentage(list);
 
 
   const text =
-    "アイカツ！アンコール カード所持率チェッカー\n"
-    +
-    `あなたのカード所持率は${getPercentage()}%でした。`;
+    "アイカツ！アンコール カード所持率チェッカー\n" +
+    `あなたのカード所持率は${percentage}%でした。`;
 
 
   const shareUrl =
-    "https://twitter.com/intent/tweet"
-    +
-    "?text="
-    +
-    encodeURIComponent(text)
-    +
-    "&url="
-    +
-    encodeURIComponent(url)
-    +
-    "&hashtags="
-    +
+    "https://twitter.com/intent/tweet" +
+    "?text=" +
+    encodeURIComponent(text) +
+    "&url=" +
+    encodeURIComponent(url) +
+    "&hashtags=" +
     encodeURIComponent(
       "アイカツ,アイカツアンコール,aikatsu,aikatsuencore"
     );
 
 
   const shareBtn =
-    document.getElementById(
-      "shareBtn"
-    );
+    document.getElementById("shareBtn");
 
 
-  shareBtn.href =
-    shareUrl;
-
+  if (shareBtn) {
+    shareBtn.href =
+      shareUrl;
+  }
 }
 
 
 /* =========================================================
-   URLを現在状態に更新
+   表示設定切り替え
 ========================================================= */
 
-function updateHash() {
-
-  const state =
-    encodeState();
-
-
-  const baseUrl =
-    location.pathname +
-    location.search;
-
-
-  const newUrl =
-    state
-
-      ? baseUrl + "#" + state
-
-      : baseUrl;
-
-
-  history.replaceState(
-    null,
-    "",
-    newUrl
-  );
-
-}
-
-
-/* =========================================================
-   表示設定の開閉
-========================================================= */
-
-function initGridToggle() {
+function updateDisplayToggle() {
 
   const button =
     document.getElementById(
-      "gridToggleBtn"
+      "displayToggleBtn"
     );
 
-  const panel =
-    document.getElementById(
-      "gridSettings"
+
+  if (!button) {
+    return;
+  }
+
+
+  const label =
+    button.querySelector(
+      ".display-toggle-label"
     );
+
 
   const icon =
-    document.getElementById(
-      "gridToggleIcon"
+    button.querySelector(
+      ".display-toggle-icon"
     );
 
 
-  if (
-    !button ||
-    !panel ||
-    !icon
-  ) {
+  /*
+    拡大状態
+  */
 
+  if (isExpanded) {
+
+    if (label) {
+      label.textContent =
+        "縮小";
+    }
+
+    if (icon) {
+      icon.textContent =
+        "−";
+    }
+
+    button.classList.add(
+      "is-expanded"
+    );
+
+    button.setAttribute(
+      "aria-expanded",
+      "true"
+    );
+
+
+  } else {
+
+    if (label) {
+      label.textContent =
+        "拡大";
+    }
+
+    if (icon) {
+      icon.textContent =
+        "+";
+    }
+
+    button.classList.remove(
+      "is-expanded"
+    );
+
+    button.setAttribute(
+      "aria-expanded",
+      "false"
+    );
+  }
+}
+
+
+/* =========================================================
+   表示設定ボタンイベント
+========================================================= */
+
+function setupDisplayToggle() {
+
+  const button =
+    document.getElementById(
+      "displayToggleBtn"
+    );
+
+
+  if (!button) {
     return;
-
   }
 
 
@@ -990,218 +1086,72 @@ function initGridToggle() {
     "click",
     () => {
 
-      const isOpen =
-        button.getAttribute(
-          "aria-expanded"
-        ) === "true";
-
-
-      const nextOpen =
-        !isOpen;
-
-
-      button.setAttribute(
-        "aria-expanded",
-        String(nextOpen)
-      );
-
-
-      panel.classList.toggle(
-        "open",
-        nextOpen
-      );
-
-
-      icon.textContent =
-        nextOpen
-          ? "−"
-          : "＋";
-
-    }
-  );
-
-}
-
-
-/* =========================================================
-   横3枚 / 横6枚
-========================================================= */
-
-function initGridSizeButtons() {
-
-  document
-    .querySelectorAll(
-      ".grid-size-btn"
-    )
-    .forEach(button => {
-
-      button.addEventListener(
-        "click",
-        () => {
-
-          const columns =
-            Number(
-              button.dataset.columns
-            );
-
-
-          const tab =
-            getActiveTab();
-
-
-          /*
-            タブごとに保存
-          */
-
-          gridSettings[tab] =
-            columns === 6
-              ? 6
-              : 3;
-
-
-          saveGridSettings();
-
-          applyGridColumns();
-
-        }
-      );
-
-    });
-
-}
-
-
-/* =========================================================
-   タブ切り替え
-========================================================= */
-
-function initTabs() {
-
-  document
-    .querySelectorAll(
-      ".tab"
-    )
-    .forEach(tab => {
-
-      tab.addEventListener(
-        "click",
-        () => {
-
-          document
-            .querySelectorAll(
-              ".tab"
-            )
-            .forEach(t => {
-
-              t.classList.remove(
-                "active"
-              );
-
-            });
-
-
-          tab.classList.add(
-            "active"
-          );
-
-
-          render();
-
-          updateStats();
-
-        }
-      );
-
-    });
-
-}
-
-
-/* =========================================================
-   すべてクリア
-========================================================= */
-
-function initClearButton() {
-
-  const clearBtn =
-    document.getElementById(
-      "clearBtn"
-    );
-
-
-  clearBtn.addEventListener(
-    "click",
-    () => {
-
-      if (
-        !confirm(
-          "すべての所持数を0に戻しますか？"
-        )
-      ) {
-
-        return;
-
-      }
-
-
-      owned = {};
-
-
-      saveOwned();
+      isExpanded =
+        !isExpanded;
 
 
       render();
 
-      updateStats();
+      updateDisplayToggle();
 
 
       /*
-        URLの共有状態も削除
+        小さなアニメーション
       */
 
-      updateHash();
+      button.classList.remove(
+        "changed"
+      );
 
 
-      shareToX();
+      void button.offsetWidth;
 
+
+      button.classList.add(
+        "changed"
+      );
     }
   );
 
+
+  updateDisplayToggle();
 }
 
 
 /* =========================================================
-   画像保存
-=========================================================
-
-   外部ライブラリ不要。
-
-   現在のタブに表示されているカードを
-   Canvasへ描画してPNGとして保存する。
-
+   ヘッダー高さを取得
 ========================================================= */
 
-function initImageSave() {
+function updateStickyHeaderHeight() {
 
-  const button =
-    document.getElementById(
-      "saveImageBtn"
+  const header =
+    document.querySelector(
+      "header"
     );
 
 
-  button.addEventListener(
-    "click",
-    saveCurrentTabAsImage
-  );
+  if (!header) {
+    return;
+  }
 
+
+  const height =
+    header.offsetHeight;
+
+
+  document.documentElement.style
+    .setProperty(
+      "--header-height",
+      `${height}px`
+    );
 }
 
 
-/*
-  カード画像をCanvasに描画
-*/
+/* =========================================================
+   画像読み込み
+========================================================= */
 
-async function loadImage(src) {
+function loadImage(src) {
 
   return new Promise(
     (resolve, reject) => {
@@ -1209,30 +1159,346 @@ async function loadImage(src) {
       const img =
         new Image();
 
-      img.onload =
-        () => resolve(img);
 
-      img.onerror =
-        () => reject(
+      img.onload = () => {
+        resolve(img);
+      };
+
+
+      img.onerror = () => {
+        reject(
           new Error(
             `画像を読み込めませんでした: ${src}`
           )
         );
+      };
 
-      img.src =
-        src;
 
+      img.src = src;
     }
   );
-
 }
 
 
+/* =========================================================
+   キャンバスへカード画像を描画
+========================================================= */
+
+async function drawCardToCanvas(
+  ctx,
+  card,
+  count,
+  x,
+  y,
+  width,
+  height
+) {
+
+  try {
+
+    const img =
+      await loadImage(card.image);
+
+
+    /*
+      カード背景
+    */
+
+    ctx.fillStyle =
+      "#2a2a2a";
+
+    ctx.fillRect(
+      x,
+      y,
+      width,
+      height
+    );
+
+
+    /*
+      元画像の縦横
+    */
+
+    const imageWidth =
+      img.naturalWidth ||
+      img.width;
+
+    const imageHeight =
+      img.naturalHeight ||
+      img.height;
+
+
+    /*
+      横長カードか判定
+    */
+
+    const landscape =
+      imageWidth >
+      imageHeight;
+
+
+    /*
+      未所持ならグレースケール
+    */
+
+    ctx.save();
+
+
+    if (count === 0) {
+
+      ctx.filter =
+        "grayscale(100%) brightness(0.7)";
+    }
+
+
+    /*
+      縦長カード
+    */
+
+    if (!landscape) {
+
+      const scale =
+        Math.min(
+          width / imageWidth,
+          height / imageHeight
+        );
+
+
+      const drawWidth =
+        imageWidth * scale;
+
+
+      const drawHeight =
+        imageHeight * scale;
+
+
+      const drawX =
+        x +
+        (width - drawWidth) / 2;
+
+
+      const drawY =
+        y +
+        (height - drawHeight) / 2;
+
+
+      ctx.drawImage(
+        img,
+        drawX,
+        drawY,
+        drawWidth,
+        drawHeight
+      );
+
+
+    /*
+      横長カード
+    */
+
+    } else {
+
+      ctx.translate(
+        x + width / 2,
+        y + height / 2
+      );
+
+
+      ctx.rotate(
+        Math.PI / 2
+      );
+
+
+      /*
+        90度回転後のサイズ
+      */
+
+      const rotatedWidth =
+        imageHeight;
+
+      const rotatedHeight =
+        imageWidth;
+
+
+      const scale =
+        Math.min(
+          width / rotatedWidth,
+          height / rotatedHeight
+        );
+
+
+      const drawWidth =
+        rotatedWidth * scale;
+
+
+      const drawHeight =
+        rotatedHeight * scale;
+
+
+      ctx.drawImage(
+        img,
+        -drawWidth / 2,
+        -drawHeight / 2,
+        drawWidth,
+        drawHeight
+      );
+    }
+
+
+    ctx.restore();
+
+
+    /*
+      所持数バッジ
+    */
+
+    if (count > 0) {
+
+      const badgeText =
+        count >= 3
+          ? "3+"
+          : String(count);
+
+
+      const badgeSize =
+        Math.max(
+          22,
+          Math.round(
+            width * 0.20
+          )
+        );
+
+
+      const radius =
+        badgeSize / 2;
+
+
+      const badgeX =
+        x +
+        width -
+        radius -
+        5;
+
+
+      const badgeY =
+        y +
+        radius +
+        5;
+
+
+      /*
+        赤丸
+      */
+
+      ctx.fillStyle =
+        "#ff4757";
+
+
+      ctx.beginPath();
+
+      ctx.arc(
+        badgeX,
+        badgeY,
+        radius,
+        0,
+        Math.PI * 2
+      );
+
+      ctx.fill();
+
+
+      /*
+        バッジ文字
+      */
+
+      ctx.fillStyle =
+        "#ffffff";
+
+      ctx.font =
+        `bold ${Math.max(
+          12,
+          Math.round(
+            badgeSize * 0.48
+          )
+        )}px sans-serif`;
+
+      ctx.textAlign =
+        "center";
+
+      ctx.textBaseline =
+        "middle";
+
+
+      ctx.fillText(
+        badgeText,
+        badgeX,
+        badgeY
+      );
+    }
+
+
+  } catch (error) {
+
+    console.warn(
+      `カード画像の描画に失敗しました: ${card.id}`,
+      error
+    );
+
+
+    /*
+      エラー時はカード番号を表示
+    */
+
+    ctx.fillStyle =
+      "#eeeeee";
+
+    ctx.fillRect(
+      x,
+      y,
+      width,
+      height
+    );
+
+
+    ctx.fillStyle =
+      "#777";
+
+    ctx.font =
+      "bold 14px sans-serif";
+
+    ctx.textAlign =
+      "center";
+
+    ctx.textBaseline =
+      "middle";
+
+
+    ctx.fillText(
+      card.id,
+      x + width / 2,
+      y + height / 2
+    );
+  }
+}
+
+
+/* =========================================================
+   所持状況を画像として保存
+========================================================= */
+
 /*
-  現在のタブを画像保存
+  現在のタブに表示されているカードを
+  横15枚で並べる。
+
+  例：
+
+  [01][02][03]...[15]
+  [16][17][18]...[30]
+  [31][32][33]...
+
+  PNGとして保存。
 */
 
-async function saveCurrentTabAsImage() {
+async function saveCollectionImage() {
 
   const button =
     document.getElementById(
@@ -1240,15 +1506,17 @@ async function saveCurrentTabAsImage() {
     );
 
 
-  const originalText =
-    button.textContent;
+  /*
+    二重クリック防止
+  */
 
+  if (button) {
+    button.classList.add(
+      "is-saving"
+    );
 
-  button.disabled =
-    true;
-
-  button.textContent =
-    "作成中…";
+    button.disabled = true;
+  }
 
 
   try {
@@ -1257,20 +1525,8 @@ async function saveCurrentTabAsImage() {
       getActiveTab();
 
 
-    const columns =
-      getCurrentColumns();
-
-
-    /*
-      現在のタブのカード
-    */
-
     const cards =
-      CARDS.filter(card =>
-        activeTab === "all"
-          ||
-        card.series === activeTab
-      );
+      getCardsForTab(activeTab);
 
 
     if (!cards.length) {
@@ -1280,83 +1536,62 @@ async function saveCurrentTabAsImage() {
       );
 
       return;
-
     }
 
 
     /*
-      画像サイズ
+      保存画像の設定
+    */
 
-      PCで見ても十分な横幅にする。
+    const columns =
+      15;
 
-      横3枚なら大きめ、
-      横6枚なら横長。
+
+    /*
+      PCで見たときくらいの
+      横長画像にする。
+
+      1カードを幅160px程度。
     */
 
     const cardWidth =
-      columns === 6
-        ? 220
-        : 300;
+      160;
 
 
     const cardHeight =
       Math.round(
-        cardWidth * 86 / 59
+        cardWidth *
+        86 /
+        59
       );
 
 
     const gap =
-      18;
+      8;
 
 
-    const padding =
-      30;
+    const horizontalPadding =
+      24;
 
 
-    const titleHeight =
-      110;
+    const topArea =
+      100;
 
 
-    const columnsCount =
-      columns;
-
+    /*
+      行数
+    */
 
     const rows =
       Math.ceil(
         cards.length /
-        columnsCount
+        columns
       );
 
 
-    const canvasWidth =
-      padding * 2
-      +
-      columnsCount *
-      cardWidth
-      +
-      (columnsCount - 1) *
-      gap;
-
-
-    const canvasHeight =
-      padding * 2
-      +
-      titleHeight
-      +
-      rows *
-      cardHeight
-      +
-      (rows - 1) *
-      gap;
-
-
     /*
-      高解像度化
+      キャンバスサイズ
     */
-
-    const scale =
-      2;
-
 
     const canvas =
       document.createElement(
@@ -1365,22 +1600,22 @@ async function saveCurrentTabAsImage() {
 
 
     canvas.width =
-      canvasWidth * scale;
+      horizontalPadding * 2 +
+      columns * cardWidth +
+      (columns - 1) * gap;
+
 
     canvas.height =
-      canvasHeight * scale;
+      topArea +
+      rows * cardHeight +
+      (rows - 1) * gap +
+      24;
 
 
     const ctx =
       canvas.getContext(
         "2d"
       );
-
-
-    ctx.scale(
-      scale,
-      scale
-    );
 
 
     /*
@@ -1393,62 +1628,82 @@ async function saveCurrentTabAsImage() {
     ctx.fillRect(
       0,
       0,
-      canvasWidth,
-      canvasHeight
+      canvas.width,
+      canvas.height
     );
 
 
     /*
-      タイトル
+      上部タイトル
     */
 
-    ctx.textAlign =
-      "center";
-
-    ctx.textBaseline =
-      "middle";
-
-
     ctx.fillStyle =
-      "#e65c9d";
-
+      "#e85b9d";
 
     ctx.font =
-      "bold 28px sans-serif";
+      "bold 30px sans-serif";
+
+    ctx.textAlign =
+      "left";
+
+    ctx.textBaseline =
+      "top";
 
 
     ctx.fillText(
-      "アイカツ！アンコール",
-      canvasWidth / 2,
-      padding + 24
+      "アイカツ！アンコール カード所持状況",
+      horizontalPadding,
+      18
     );
 
 
-    ctx.fillStyle =
-      "#666";
+    /*
+      タブ名
+    */
 
+    ctx.fillStyle =
+      "#777";
 
     ctx.font =
       "bold 18px sans-serif";
 
 
-    const tabName =
+    const tabLabel =
       activeTab === "all"
         ? "すべて"
-        : activeTab === "promo"
-          ? "プロモーション"
-          : `${activeTab}弾`;
+        : getSeriesLabel(activeTab);
 
 
     ctx.fillText(
-      `${tabName}　所持率 ${getPercentage()}%`,
-      canvasWidth / 2,
-      padding + 66
+      tabLabel,
+      horizontalPadding,
+      58
     );
 
 
     /*
-      カード画像を順番に描画
+      所持率
+    */
+
+    ctx.fillStyle =
+      "#e85b9d";
+
+    ctx.font =
+      "bold 18px sans-serif";
+
+
+    ctx.fillText(
+      `所持：${getOwnedCount(cards)} / ${cards.length}枚（${getPercentage(cards)}%）`,
+      horizontalPadding + 110,
+      58
+    );
+
+
+    /*
+      カード描画
+
+      Promiseを順番に処理して
+      Canvasへの描画順を安定させる。
     */
 
     for (
@@ -1463,304 +1718,41 @@ async function saveCurrentTabAsImage() {
 
       const row =
         Math.floor(
-          i / columnsCount
+          i / columns
         );
 
 
       const column =
-        i % columnsCount;
+        i % columns;
 
 
       const x =
-        padding
-        +
+        horizontalPadding +
         column *
-        (cardWidth + gap);
+          (cardWidth + gap);
 
 
       const y =
-        padding
-        +
-        titleHeight
-        +
+        topArea +
         row *
-        (cardHeight + gap);
+          (cardHeight + gap);
 
 
-      /*
-        カード背景
-      */
-
-      ctx.fillStyle =
-        "#2a2a2a";
+      const count =
+        getCardCount(
+          card.id
+        );
 
 
-      ctx.fillRect(
+      await drawCardToCanvas(
+        ctx,
+        card,
+        count,
         x,
         y,
         cardWidth,
         cardHeight
       );
-
-
-      try {
-
-        const img =
-          await loadImage(
-            card.image
-          );
-
-
-        /*
-          画像の縦横を判定
-        */
-
-        const landscape =
-          img.naturalWidth >
-          img.naturalHeight;
-
-
-        ctx.save();
-
-
-        /*
-          クリッピング
-        */
-
-        ctx.beginPath();
-
-        ctx.rect(
-          x,
-          y,
-          cardWidth,
-          cardHeight
-        );
-
-        ctx.clip();
-
-
-        if (!landscape) {
-
-          /*
-            通常の縦長画像
-          */
-
-          const ratio =
-            Math.min(
-              cardWidth /
-                img.naturalWidth,
-              cardHeight /
-                img.naturalHeight
-            );
-
-
-          const width =
-            img.naturalWidth *
-            ratio;
-
-
-          const height =
-            img.naturalHeight *
-            ratio;
-
-
-          ctx.drawImage(
-            img,
-            x +
-              (cardWidth - width) / 2,
-            y +
-              (cardHeight - height) / 2,
-            width,
-            height
-          );
-
-        } else {
-
-          /*
-            横長画像を90度回転
-          */
-
-          ctx.save();
-
-
-          ctx.translate(
-            x + cardWidth / 2,
-            y + cardHeight / 2
-          );
-
-
-          ctx.rotate(
-            Math.PI / 2
-          );
-
-
-          const rotatedWidth =
-            cardHeight;
-
-          const rotatedHeight =
-            cardWidth;
-
-
-          const ratio =
-            Math.min(
-              rotatedWidth /
-                img.naturalWidth,
-              rotatedHeight /
-                img.naturalHeight
-            );
-
-
-          const width =
-            img.naturalWidth *
-            ratio;
-
-
-          const height =
-            img.naturalHeight *
-            ratio;
-
-
-          ctx.drawImage(
-            img,
-            -width / 2,
-            -height / 2,
-            width,
-            height
-          );
-
-
-          ctx.restore();
-
-        }
-
-
-        ctx.restore();
-
-
-        /*
-          未所持カードをグレー表示
-        */
-
-        const count =
-          Number(
-            owned[card.id] || 0
-          );
-
-
-        if (count === 0) {
-
-          ctx.save();
-
-          ctx.globalAlpha =
-            0.35;
-
-          ctx.fillStyle =
-            "#777";
-
-          ctx.fillRect(
-            x,
-            y,
-            cardWidth,
-            cardHeight
-          );
-
-          ctx.restore();
-
-        }
-
-
-        /*
-          所持数バッジ
-        */
-
-        if (count > 0) {
-
-          const badgeText =
-            count >= 3
-              ? "3+"
-              : String(count);
-
-
-          const badgeRadius =
-            18;
-
-
-          const badgeX =
-            x +
-            cardWidth -
-            28;
-
-
-          const badgeY =
-            y +
-            28;
-
-
-          ctx.beginPath();
-
-          ctx.arc(
-            badgeX,
-            badgeY,
-            badgeRadius,
-            0,
-            Math.PI * 2
-          );
-
-
-          ctx.fillStyle =
-            "#ff4757";
-
-          ctx.fill();
-
-
-          ctx.fillStyle =
-            "#fff";
-
-          ctx.font =
-            "bold 15px sans-serif";
-
-          ctx.textAlign =
-            "center";
-
-          ctx.textBaseline =
-            "middle";
-
-
-          ctx.fillText(
-            badgeText,
-            badgeX,
-            badgeY
-          );
-
-        }
-
-      } catch {
-
-        /*
-          画像読み込み失敗時
-        */
-
-        ctx.fillStyle =
-          "#999";
-
-        ctx.textAlign =
-          "center";
-
-        ctx.textBaseline =
-          "middle";
-
-        ctx.font =
-          "14px sans-serif";
-
-
-        ctx.fillText(
-          card.name,
-          x + cardWidth / 2,
-          y + cardHeight / 2
-        );
-
-      }
-
     }
 
 
@@ -1768,15 +1760,51 @@ async function saveCurrentTabAsImage() {
       PNG化
     */
 
-    const dataUrl =
-      canvas.toDataURL(
-        "image/png"
+    const blob =
+      await new Promise(
+        resolve => {
+          canvas.toBlob(
+            resolve,
+            "image/png"
+          );
+        }
       );
+
+
+    if (!blob) {
+      throw new Error(
+        "PNGの生成に失敗しました。"
+      );
+    }
+
+
+    /*
+      ファイル名
+    */
+
+    const date =
+      new Date();
+
+
+    const dateString =
+      date
+        .toISOString()
+        .slice(0, 10);
+
+
+    const fileName =
+      `aikatsu-encore-${activeTab}-${dateString}.png`;
 
 
     /*
       ダウンロード
     */
+
+    const url =
+      URL.createObjectURL(
+        blob
+      );
+
 
     const link =
       document.createElement(
@@ -1784,75 +1812,155 @@ async function saveCurrentTabAsImage() {
       );
 
 
-    const tabFileName =
-      activeTab === "all"
-        ? "all"
-        : activeTab === "promo"
-          ? "promo"
-          : `E${activeTab}`;
-
+    link.href =
+      url;
 
     link.download =
-      `aikatsu-encore-${tabFileName}-collection.png`;
+      fileName;
 
 
-    link.href =
-      dataUrl;
+    document.body.appendChild(
+      link
+    );
 
 
     link.click();
 
+
+    link.remove();
+
+
+    /*
+      後片付け
+    */
+
+    setTimeout(
+      () => {
+        URL.revokeObjectURL(
+          url
+        );
+      },
+      1000
+    );
+
+
   } catch (error) {
 
     console.error(
+      "画像保存に失敗しました。",
       error
     );
 
+
     alert(
-      "画像の作成に失敗しました。"
+      "画像の保存に失敗しました。\n" +
+      "画像を読み込めないカードがある可能性があります。"
     );
+
 
   } finally {
 
-    button.disabled =
-      false;
+    if (button) {
 
-    button.textContent =
-      originalText;
+      button.classList.remove(
+        "is-saving"
+      );
 
+      button.disabled =
+        false;
+    }
   }
-
 }
 
 
 /* =========================================================
-   ヘッダー高さを取得
+   画像保存ボタン
 ========================================================= */
 
-function updateStickyHeaderHeight() {
+function setupSaveImage() {
 
-  const header =
+  const button =
     document.getElementById(
-      "siteHeader"
+      "saveImageBtn"
     );
 
 
-  if (!header) {
+  if (!button) {
     return;
   }
 
 
-  const height =
-    header.offsetHeight;
+  button.addEventListener(
+    "click",
+    saveCollectionImage
+  );
+}
 
 
-  document.documentElement
-    .style
-    .setProperty(
-      "--header-height",
-      `${height}px`
+/* =========================================================
+   すべてクリア
+========================================================= */
+
+function setupClearButton() {
+
+  const clearBtn =
+    document.getElementById(
+      "clearBtn"
     );
 
+
+  if (!clearBtn) {
+    return;
+  }
+
+
+  clearBtn.addEventListener(
+    "click",
+    () => {
+
+      const confirmed =
+        confirm(
+          "すべての所持数を0に戻しますか？"
+        );
+
+
+      if (!confirmed) {
+        return;
+      }
+
+
+      /*
+        所持データ削除
+      */
+
+      owned = {};
+
+      saveOwned();
+
+
+      /*
+        表示更新
+      */
+
+      render();
+
+      updateStats();
+
+      shareToX();
+
+
+      /*
+        URLの共有ハッシュも削除
+      */
+
+      history.replaceState(
+        null,
+        "",
+        location.pathname +
+        location.search
+      );
+    }
+  );
 }
 
 
@@ -1863,35 +1971,66 @@ function updateStickyHeaderHeight() {
 function init() {
 
   /*
-    保存データ読み込み
+    所持データ読み込み
   */
 
   loadOwned();
 
 
   /*
-    表示設定読み込み
-  */
-
-  loadGridSettings();
-
-
-  /*
-    URLの共有データを適用
+    URL共有データを優先
   */
 
   applyHash();
 
 
   /*
-    初回描画
+    タブ生成
+  */
+
+  setupTabs();
+
+
+  /*
+    カード描画
   */
 
   render();
 
+
+  /*
+    所持率
+  */
+
   updateStats();
 
+
+  /*
+    X共有
+  */
+
   shareToX();
+
+
+  /*
+    表示設定
+  */
+
+  setupDisplayToggle();
+
+
+  /*
+    画像保存
+  */
+
+  setupSaveImage();
+
+
+  /*
+    すべてクリア
+  */
+
+  setupClearButton();
 
 
   /*
@@ -1902,55 +2041,18 @@ function init() {
 
 
   /*
-    表示設定開閉
-  */
-
-  initGridToggle();
-
-
-  /*
-    横3 / 横6
-  */
-
-  initGridSizeButtons();
-
-
-  /*
-    タブ
-  */
-
-  initTabs();
-
-
-  /*
-    クリア
-  */
-
-  initClearButton();
-
-
-  /*
-    画像保存
-  */
-
-  initImageSave();
-
-
-  /*
-    リサイズ時に
-    sticky位置を再計算
+    リサイズ時にも更新
   */
 
   window.addEventListener(
     "resize",
     updateStickyHeaderHeight
   );
-
 }
 
 
 /* =========================================================
-   実行
+   起動
 ========================================================= */
 
 init();
