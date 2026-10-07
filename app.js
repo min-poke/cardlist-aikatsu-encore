@@ -11,11 +11,6 @@
 const STORAGE_KEY = "aikatsu_encore_owned";
 
 let owned = {};
-// {
-//   "E1-01_PR": 3,
-//   "E1-05_R": 1,
-//   ...
-// }
 
 
 /* =========================================================
@@ -29,7 +24,7 @@ let owned = {};
 // 通常 → 横3枚
 // 拡大 → 横6枚
 //
-// PCでは常に横10枚なので、この設定は実質影響なし。
+// PCでは常に横10枚。
 
 let isExpanded = false;
 
@@ -39,15 +34,19 @@ let isExpanded = false;
 ========================================================= */
 
 function loadOwned() {
+
   try {
-    const saved = localStorage.getItem(STORAGE_KEY);
+
+    const saved =
+      localStorage.getItem(STORAGE_KEY);
 
     if (!saved) {
       owned = {};
       return;
     }
 
-    const parsed = JSON.parse(saved);
+    const parsed =
+      JSON.parse(saved);
 
     if (
       parsed &&
@@ -60,7 +59,12 @@ function loadOwned() {
     }
 
   } catch (error) {
-    console.warn("所持データの読み込みに失敗しました。", error);
+
+    console.warn(
+      "所持データの読み込みに失敗しました。",
+      error
+    );
+
     owned = {};
   }
 }
@@ -71,6 +75,7 @@ function loadOwned() {
 ========================================================= */
 
 function saveOwned() {
+
   localStorage.setItem(
     STORAGE_KEY,
     JSON.stringify(owned)
@@ -83,10 +88,17 @@ function saveOwned() {
 ========================================================= */
 
 function getCardCount(cardId) {
-  const count = Number(owned[cardId] || 0);
 
-  if (count < 0) return 0;
-  if (count > 3) return 3;
+  const count =
+    Number(owned[cardId] || 0);
+
+  if (count < 0) {
+    return 0;
+  }
+
+  if (count > 3) {
+    return 3;
+  }
 
   return count;
 }
@@ -97,6 +109,7 @@ function getCardCount(cardId) {
 ========================================================= */
 
 function getOwnedCount(cardList = CARDS) {
+
   return cardList.filter(card => {
     return getCardCount(card.id) > 0;
   }).length;
@@ -108,6 +121,7 @@ function getOwnedCount(cardList = CARDS) {
 ========================================================= */
 
 function getPercentage(cardList = CARDS) {
+
   if (!cardList.length) {
     return "0.0";
   }
@@ -125,7 +139,9 @@ function getPercentage(cardList = CARDS) {
 ========================================================= */
 
 function getActiveTab() {
-  const activeTab = document.querySelector(".tab.active");
+
+  const activeTab =
+    document.querySelector(".tab.active");
 
   return activeTab
     ? activeTab.dataset.tab
@@ -159,20 +175,8 @@ function getSeriesLabel(series) {
     return "プロモーション";
   }
 
-  /*
-    E1 → 1弾
-    E2 → 2弾
-    E50 → 50弾
-
-    cards.js側では
-    series: "1"
-    series: "2"
-    ...
-    のようにしても、
-    "E1" のようにしても対応。
-  */
-
-  const number = String(series).match(/\d+/);
+  const number =
+    String(series).match(/\d+/);
 
   if (number) {
     return `${number[0]}弾`;
@@ -186,21 +190,6 @@ function getSeriesLabel(series) {
    タブ生成
 ========================================================= */
 
-/*
-  cards.jsに追加されたシリーズを自動的にタブへ追加する。
-
-  例：
-
-  E1
-  E2
-  E3
-  E4
-  promo
-
-  のようにカードが追加されれば、
-  タブも自動的に追加される。
-*/
-
 function setupTabs() {
 
   const tabsContainer =
@@ -210,8 +199,9 @@ function setupTabs() {
     return;
   }
 
+
   /*
-    cards.js内に登場するseriesを取得
+    cards.js内に存在するシリーズを取得
   */
 
   const seriesList = [
@@ -220,25 +210,37 @@ function setupTabs() {
     )
   ];
 
+
   /*
+    E1 → E2 → E3 → ...
     数字シリーズを先に並べる。
-    promoなど文字列シリーズは最後。
+
+    promoなどは最後。
   */
 
   seriesList.sort((a, b) => {
 
-    const aNumber = a.match(/\d+/);
-    const bNumber = b.match(/\d+/);
+    const aNumber =
+      a.match(/\d+/);
+
+    const bNumber =
+      b.match(/\d+/);
 
     if (aNumber && bNumber) {
+
       return (
         Number(aNumber[0]) -
         Number(bNumber[0])
       );
     }
 
-    if (aNumber) return -1;
-    if (bNumber) return 1;
+    if (aNumber) {
+      return -1;
+    }
+
+    if (bNumber) {
+      return 1;
+    }
 
     return a.localeCompare(b);
   });
@@ -249,33 +251,40 @@ function setupTabs() {
   */
 
   const currentTab =
-    tabsContainer.querySelector(".tab.active")
+    tabsContainer
+      .querySelector(".tab.active")
       ?.dataset.tab || "all";
 
 
   /*
-    既存タブをすべて削除
+    既存タブを削除
   */
 
   tabsContainer.innerHTML = "";
 
 
   /*
-    すべて
+    「すべて」
   */
 
   const allTab =
     document.createElement("button");
 
-  allTab.className = "tab";
+  allTab.className =
+    "tab";
 
-  allTab.type = "button";
+  allTab.type =
+    "button";
 
-  allTab.dataset.tab = "all";
+  allTab.dataset.tab =
+    "all";
 
-  allTab.textContent = "すべて";
+  allTab.textContent =
+    "すべて";
 
-  tabsContainer.appendChild(allTab);
+  tabsContainer.appendChild(
+    allTab
+  );
 
 
   /*
@@ -287,16 +296,21 @@ function setupTabs() {
     const tab =
       document.createElement("button");
 
-    tab.className = "tab";
+    tab.className =
+      "tab";
 
-    tab.type = "button";
+    tab.type =
+      "button";
 
-    tab.dataset.tab = series;
+    tab.dataset.tab =
+      series;
 
     tab.textContent =
       getSeriesLabel(series);
 
-    tabsContainer.appendChild(tab);
+    tabsContainer.appendChild(
+      tab
+    );
   });
 
 
@@ -310,39 +324,55 @@ function setupTabs() {
     );
 
   if (active) {
-    active.classList.add("active");
+
+    active.classList.add(
+      "active"
+    );
+
   } else {
-    allTab.classList.add("active");
+
+    allTab.classList.add(
+      "active"
+    );
   }
 
 
   /*
-    クリックイベント
+    タブクリック
   */
 
   tabsContainer
     .querySelectorAll(".tab")
     .forEach(tab => {
 
-      tab.addEventListener("click", () => {
+      tab.addEventListener(
+        "click",
+        () => {
 
-        tabsContainer
-          .querySelectorAll(".tab")
-          .forEach(item => {
-            item.classList.remove("active");
-          });
+          tabsContainer
+            .querySelectorAll(".tab")
+            .forEach(item => {
 
-        tab.classList.add("active");
+              item.classList.remove(
+                "active"
+              );
+            });
 
-        render();
 
-        updateStats();
+          tab.classList.add(
+            "active"
+          );
 
-        updateDisplayToggle();
 
-        shareToX();
-      });
+          render();
 
+          updateStats();
+
+          updateDisplayToggle();
+
+          shareToX();
+        }
+      );
     });
 }
 
@@ -354,24 +384,18 @@ function setupTabs() {
 function render() {
 
   const grid =
-    document.getElementById("cardGrid");
+    document.getElementById(
+      "cardGrid"
+    );
 
   if (!grid) {
     return;
   }
 
 
-  /*
-    現在のタブ
-  */
-
   const activeTab =
     getActiveTab();
 
-
-  /*
-    対象カード
-  */
 
   const list =
     getCardsForTab(activeTab);
@@ -385,18 +409,25 @@ function render() {
 
 
   /*
-    拡大状態をCSSへ反映
+    拡大状態
   */
 
   if (isExpanded) {
-    grid.classList.add("expanded");
+
+    grid.classList.add(
+      "expanded"
+    );
+
   } else {
-    grid.classList.remove("expanded");
+
+    grid.classList.remove(
+      "expanded"
+    );
   }
 
 
   /*
-    カードを生成
+    カード生成
   */
 
   list.forEach(card => {
@@ -405,15 +436,19 @@ function render() {
       getCardCount(card.id);
 
 
-    /*
-      カード本体
-    */
-
     const item =
-      document.createElement("div");
+      document.createElement(
+        "div"
+      );
+
 
     item.className =
-      `card-item ${count === 0 ? "unowned" : ""}`;
+      `card-item ${
+        count === 0
+          ? "unowned"
+          : ""
+      }`;
+
 
     item.dataset.id =
       card.id;
@@ -424,13 +459,18 @@ function render() {
     */
 
     const img =
-      document.createElement("img");
+      document.createElement(
+        "img"
+      );
+
 
     img.src =
       card.image;
 
+
     img.alt =
       card.name || card.id;
+
 
     img.loading =
       "lazy";
@@ -445,11 +485,19 @@ function render() {
       if (
         img.naturalWidth > 0 &&
         img.naturalHeight > 0 &&
-        img.naturalWidth > img.naturalHeight
+        img.naturalWidth >
+          img.naturalHeight
       ) {
-        img.classList.add("rotate-90");
+
+        img.classList.add(
+          "rotate-90"
+        );
+
       } else {
-        img.classList.remove("rotate-90");
+
+        img.classList.remove(
+          "rotate-90"
+        );
       }
     };
 
@@ -464,6 +512,7 @@ function render() {
       img.complete &&
       img.naturalWidth > 0
     ) {
+
       rotateIfLandscape();
     }
 
@@ -473,15 +522,26 @@ function render() {
     */
 
     const badge =
-      document.createElement("div");
+      document.createElement(
+        "div"
+      );
+
 
     badge.className =
-      `badge ${count === 0 ? "hidden" : ""}`;
+      `badge ${
+        count === 0
+          ? "hidden"
+          : ""
+      }`;
 
 
     if (count >= 3) {
-      badge.textContent = "3+";
+
+      badge.textContent =
+        "3+";
+
     } else {
+
       badge.textContent =
         String(count);
     }
@@ -507,9 +567,13 @@ function render() {
 
 
         if (next === 0) {
+
           delete owned[card.id];
+
         } else {
-          owned[card.id] = next;
+
+          owned[card.id] =
+            next;
         }
 
 
@@ -524,15 +588,17 @@ function render() {
     );
 
 
-    /*
-      DOMへ追加
-    */
+    item.appendChild(
+      img
+    );
 
-    item.appendChild(img);
+    item.appendChild(
+      badge
+    );
 
-    item.appendChild(badge);
-
-    grid.appendChild(item);
+    grid.appendChild(
+      item
+    );
 
   });
 }
@@ -547,85 +613,49 @@ function updateStats() {
   const activeTab =
     getActiveTab();
 
+
   const list =
     getCardsForTab(activeTab);
 
 
   const totalCount =
-    document.getElementById("totalCount");
+    document.getElementById(
+      "totalCount"
+    );
+
 
   const ownedCount =
-    document.getElementById("ownedCount");
+    document.getElementById(
+      "ownedCount"
+    );
+
 
   const ownedPercentage =
-    document.getElementById("ownedPercentage");
+    document.getElementById(
+      "ownedPercentage"
+    );
 
 
   if (totalCount) {
+
     totalCount.textContent =
       list.length;
   }
 
 
   if (ownedCount) {
+
     ownedCount.textContent =
       getOwnedCount(list);
   }
 
 
   if (ownedPercentage) {
+
     ownedPercentage.textContent =
       getPercentage(list);
   }
 }
-
-
-/* =========================================================
-   共有データ圧縮
-========================================================= */
-
-/*
-  1カード = 2bit
-
-  00 = 0枚
-  01 = 1枚
-  10 = 2枚
-  11 = 3枚
-
-  4カード = 1byte
-
-  例：
-
-  [0, 1, 2, 3]
-
-  ↓
-
-  00 01 10 11
-
-  ↓
-
-  00011011
-
-  ↓
-
-  0x1B
-
-
-  その後Base64URL化する。
-
-  さらに末尾の0枚カードは
-  データそのものから省略する。
-
-  そのため、
-
-  全カード0枚
-  → 空文字
-
-  先頭だけ3枚
-  → 非常に短い
-
-  というURLになる。
-*/
 
 
 /* =========================================================
@@ -636,12 +666,22 @@ function bytesToBase64Url(bytes) {
 
   let binary = "";
 
-  for (let i = 0; i < bytes.length; i++) {
-    binary += String.fromCharCode(bytes[i]);
+  for (
+    let i = 0;
+    i < bytes.length;
+    i++
+  ) {
+
+    binary +=
+      String.fromCharCode(
+        bytes[i]
+      );
   }
+
 
   const base64 =
     btoa(binary);
+
 
   return base64
     .replace(/\+/g, "-")
@@ -657,8 +697,10 @@ function bytesToBase64Url(bytes) {
 function base64UrlToBytes(str) {
 
   if (!str) {
+
     return new Uint8Array();
   }
+
 
   let base64 =
     str
@@ -666,7 +708,10 @@ function base64UrlToBytes(str) {
       .replace(/_/g, "/");
 
 
-  while (base64.length % 4 !== 0) {
+  while (
+    base64.length % 4 !== 0
+  ) {
+
     base64 += "=";
   }
 
@@ -676,7 +721,9 @@ function base64UrlToBytes(str) {
 
 
   const bytes =
-    new Uint8Array(binary.length);
+    new Uint8Array(
+      binary.length
+    );
 
 
   for (
@@ -684,6 +731,7 @@ function base64UrlToBytes(str) {
     i < binary.length;
     i++
   ) {
+
     bytes[i] =
       binary.charCodeAt(i);
   }
@@ -699,10 +747,6 @@ function base64UrlToBytes(str) {
 
 function encodeState() {
 
-  /*
-    全カードの所持数を取得
-  */
-
   const counts =
     CARDS.map(card => {
       return getCardCount(card.id);
@@ -711,14 +755,6 @@ function encodeState() {
 
   /*
     末尾の0を削除
-
-    例：
-
-    [3, 1, 0, 0, 0]
-
-    ↓
-
-    [3, 1]
   */
 
   let last =
@@ -729,12 +765,13 @@ function encodeState() {
     last >= 0 &&
     counts[last] === 0
   ) {
+
     last--;
   }
 
 
   /*
-    全部0枚なら空文字
+    全部0枚
   */
 
   if (last < 0) {
@@ -742,35 +779,28 @@ function encodeState() {
   }
 
 
-  /*
-    必要なカード数
-  */
-
   const usedCount =
     last + 1;
 
 
   /*
-    4枚につき1byte
-
-    Math.ceil(usedCount / 4)
+    4カード = 1byte
   */
 
   const byteLength =
-    Math.ceil(usedCount / 4);
+    Math.ceil(
+      usedCount / 4
+    );
 
 
   const bytes =
-    new Uint8Array(byteLength);
+    new Uint8Array(
+      byteLength
+    );
 
 
   /*
-    2bitずつ詰める
-
-    1枚目 → bits 0-1
-    2枚目 → bits 2-3
-    3枚目 → bits 4-5
-    4枚目 → bits 6-7
+    1カード = 2bit
   */
 
   for (
@@ -796,7 +826,9 @@ function encodeState() {
   }
 
 
-  return bytesToBase64Url(bytes);
+  return bytesToBase64Url(
+    bytes
+  );
 }
 
 
@@ -817,12 +849,9 @@ function decodeState(hash) {
       base64UrlToBytes(hash);
 
 
-    const result = {};
+    const result =
+      {};
 
-
-    /*
-      1byte = 4カード
-    */
 
     const maxCards =
       Math.min(
@@ -846,12 +875,15 @@ function decodeState(hash) {
 
 
       const count =
-        (bytes[byteIndex] >> shift) & 0b11;
+        (bytes[byteIndex] >>
+          shift) & 0b11;
 
 
       if (count > 0) {
-        result[CARDS[i].id] =
-          count;
+
+        result[
+          CARDS[i].id
+        ] = count;
       }
     }
 
@@ -882,8 +914,6 @@ function applyHash() {
 
   /*
     ハッシュなし
-
-    → 通常のlocalStorageを使用
   */
 
   if (!hash) {
@@ -899,11 +929,6 @@ function applyHash() {
     return;
   }
 
-
-  /*
-    共有URLを開いた場合は
-    URLのデータを優先する
-  */
 
   owned =
     decoded;
@@ -923,12 +948,6 @@ function shareToX() {
     encodeState();
 
 
-  /*
-    ハッシュを作成
-
-    0枚だけならハッシュ自体を付けない。
-  */
-
   const hash =
     state
       ? `#${state}`
@@ -941,10 +960,6 @@ function shareToX() {
     location.search +
     hash;
 
-
-  /*
-    現在のタブの所持率を表示
-  */
 
   const activeTab =
     getActiveTab();
@@ -976,10 +991,13 @@ function shareToX() {
 
 
   const shareBtn =
-    document.getElementById("shareBtn");
+    document.getElementById(
+      "shareBtn"
+    );
 
 
   if (shareBtn) {
+
     shareBtn.href =
       shareUrl;
   }
@@ -987,8 +1005,30 @@ function shareToX() {
 
 
 /* =========================================================
-   表示設定切り替え
+   表示設定切り替え表示
 ========================================================= */
+
+/*
+  スマホのみ使用。
+
+  今回は表示を逆にする。
+
+  通常状態
+    → 「縮小」表示
+    → ＋
+
+  拡大状態
+    → 「拡大」表示
+    → −
+
+  つまり、
+
+  ボタンに表示されている文字は
+  「押した後にどうなるか」ではなく、
+  「現在の状態」を表す。
+
+  CSS側でPCでは非表示にする。
+*/
 
 function updateDisplayToggle() {
 
@@ -1015,25 +1055,30 @@ function updateDisplayToggle() {
     );
 
 
-  /*
-    拡大状態
-  */
-
   if (isExpanded) {
 
+    /*
+      現在は拡大状態
+    */
+
     if (label) {
+
       label.textContent =
-        "縮小";
+        "拡大";
     }
 
+
     if (icon) {
+
       icon.textContent =
         "−";
     }
 
+
     button.classList.add(
       "is-expanded"
     );
+
 
     button.setAttribute(
       "aria-expanded",
@@ -1043,19 +1088,28 @@ function updateDisplayToggle() {
 
   } else {
 
+    /*
+      現在は通常状態
+    */
+
     if (label) {
+
       label.textContent =
-        "拡大";
+        "縮小";
     }
 
+
     if (icon) {
+
       icon.textContent =
         "+";
     }
 
+
     button.classList.remove(
       "is-expanded"
     );
+
 
     button.setAttribute(
       "aria-expanded",
@@ -1066,7 +1120,7 @@ function updateDisplayToggle() {
 
 
 /* =========================================================
-   表示設定ボタンイベント
+   表示設定ボタン
 ========================================================= */
 
 function setupDisplayToggle() {
@@ -1096,7 +1150,7 @@ function setupDisplayToggle() {
 
 
       /*
-        小さなアニメーション
+        ボタンアニメーション
       */
 
       button.classList.remove(
@@ -1119,7 +1173,7 @@ function setupDisplayToggle() {
 
 
 /* =========================================================
-   ヘッダー高さを取得
+   ヘッダー高さ
 ========================================================= */
 
 function updateStickyHeaderHeight() {
@@ -1166,6 +1220,7 @@ function loadImage(src) {
 
 
       img.onerror = () => {
+
         reject(
           new Error(
             `画像を読み込めませんでした: ${src}`
@@ -1174,15 +1229,42 @@ function loadImage(src) {
       };
 
 
-      img.src = src;
+      img.src =
+        src;
     }
   );
 }
 
 
 /* =========================================================
-   キャンバスへカード画像を描画
+   Canvasへカード画像を描画
 ========================================================= */
+
+/*
+  ここが今回の重要修正版。
+
+  横長カードの場合、
+
+  元画像
+      ──────────
+      横長
+
+  ↓ 90度回転
+
+      │
+      │
+      │
+      │
+      │
+      縦長
+
+  となるため、
+
+  「回転後の見かけ上の幅・高さ」
+  を使って縮尺を計算する。
+
+  これにより横方向へ引き伸ばされない。
+*/
 
 async function drawCardToCanvas(
   ctx,
@@ -1197,7 +1279,9 @@ async function drawCardToCanvas(
   try {
 
     const img =
-      await loadImage(card.image);
+      await loadImage(
+        card.image
+      );
 
 
     /*
@@ -1206,6 +1290,7 @@ async function drawCardToCanvas(
 
     ctx.fillStyle =
       "#2a2a2a";
+
 
     ctx.fillRect(
       x,
@@ -1216,12 +1301,13 @@ async function drawCardToCanvas(
 
 
     /*
-      元画像の縦横
+      元画像サイズ
     */
 
     const imageWidth =
       img.naturalWidth ||
       img.width;
+
 
     const imageHeight =
       img.naturalHeight ||
@@ -1229,7 +1315,7 @@ async function drawCardToCanvas(
 
 
     /*
-      横長カードか判定
+      横長カード判定
     */
 
     const landscape =
@@ -1238,7 +1324,8 @@ async function drawCardToCanvas(
 
 
     /*
-      未所持ならグレースケール
+      未所持の場合
+      CSSと同じように暗くする
     */
 
     ctx.save();
@@ -1251,11 +1338,16 @@ async function drawCardToCanvas(
     }
 
 
-    /*
-      縦長カード
-    */
+    /* =====================================================
+       縦長カード
+    ===================================================== */
 
     if (!landscape) {
+
+      /*
+        元画像そのままの比率で
+        枠内に収める。
+      */
 
       const scale =
         Math.min(
@@ -1291,33 +1383,39 @@ async function drawCardToCanvas(
       );
 
 
-    /*
-      横長カード
-    */
+    /* =====================================================
+       横長カード
+    ===================================================== */
 
     } else {
 
-      ctx.translate(
-        x + width / 2,
-        y + height / 2
-      );
-
-
-      ctx.rotate(
-        Math.PI / 2
-      );
-
-
       /*
-        90度回転後のサイズ
+        90度回転した後の
+        見かけ上のサイズ。
+
+        元画像：
+          width  = 800
+          height = 550
+
+        回転後：
+          width  = 550
+          height = 800
+
+        ここを基準に縮尺を計算する。
       */
 
       const rotatedWidth =
         imageHeight;
 
+
       const rotatedHeight =
         imageWidth;
 
+
+      /*
+        回転後のカードが
+        枠内に完全に収まる倍率。
+      */
 
       const scale =
         Math.min(
@@ -1334,6 +1432,26 @@ async function drawCardToCanvas(
         rotatedHeight * scale;
 
 
+      /*
+        キャンバス中心を基準に90度回転。
+      */
+
+      ctx.translate(
+        x + width / 2,
+        y + height / 2
+      );
+
+
+      ctx.rotate(
+        Math.PI / 2
+      );
+
+
+      /*
+        回転後の画像を
+        正しい比率で描画。
+      */
+
       ctx.drawImage(
         img,
         -drawWidth / 2,
@@ -1347,9 +1465,9 @@ async function drawCardToCanvas(
     ctx.restore();
 
 
-    /*
-      所持数バッジ
-    */
+    /* =====================================================
+       所持数バッジ
+    ===================================================== */
 
     if (count > 0) {
 
@@ -1395,6 +1513,7 @@ async function drawCardToCanvas(
 
       ctx.beginPath();
 
+
       ctx.arc(
         badgeX,
         badgeY,
@@ -1403,15 +1522,17 @@ async function drawCardToCanvas(
         Math.PI * 2
       );
 
+
       ctx.fill();
 
 
       /*
-        バッジ文字
+        文字
       */
 
       ctx.fillStyle =
         "#ffffff";
+
 
       ctx.font =
         `bold ${Math.max(
@@ -1421,8 +1542,10 @@ async function drawCardToCanvas(
           )
         )}px sans-serif`;
 
+
       ctx.textAlign =
         "center";
+
 
       ctx.textBaseline =
         "middle";
@@ -1445,11 +1568,12 @@ async function drawCardToCanvas(
 
 
     /*
-      エラー時はカード番号を表示
+      エラー時
     */
 
     ctx.fillStyle =
       "#eeeeee";
+
 
     ctx.fillRect(
       x,
@@ -1462,11 +1586,14 @@ async function drawCardToCanvas(
     ctx.fillStyle =
       "#777";
 
+
     ctx.font =
       "bold 14px sans-serif";
 
+
     ctx.textAlign =
       "center";
+
 
     ctx.textBaseline =
       "middle";
@@ -1485,19 +1612,6 @@ async function drawCardToCanvas(
    所持状況を画像として保存
 ========================================================= */
 
-/*
-  現在のタブに表示されているカードを
-  横15枚で並べる。
-
-  例：
-
-  [01][02][03]...[15]
-  [16][17][18]...[30]
-  [31][32][33]...
-
-  PNGとして保存。
-*/
-
 async function saveCollectionImage() {
 
   const button =
@@ -1511,11 +1625,13 @@ async function saveCollectionImage() {
   */
 
   if (button) {
+
     button.classList.add(
       "is-saving"
     );
 
-    button.disabled = true;
+    button.disabled =
+      true;
   }
 
 
@@ -1526,7 +1642,9 @@ async function saveCollectionImage() {
 
 
     const cards =
-      getCardsForTab(activeTab);
+      getCardsForTab(
+        activeTab
+      );
 
 
     if (!cards.length) {
@@ -1539,8 +1657,12 @@ async function saveCollectionImage() {
     }
 
 
+    /* =====================================================
+       保存画像設定
+    ===================================================== */
+
     /*
-      保存画像の設定
+      1行15枚
     */
 
     const columns =
@@ -1548,15 +1670,18 @@ async function saveCollectionImage() {
 
 
     /*
-      PCで見たときくらいの
-      横長画像にする。
-
-      1カードを幅160px程度。
+      カード幅
     */
 
     const cardWidth =
       160;
 
+
+    /*
+      縦長カード比率
+
+      59 : 86
+    */
 
     const cardHeight =
       Math.round(
@@ -1590,7 +1715,7 @@ async function saveCollectionImage() {
 
 
     /*
-      キャンバスサイズ
+      Canvasサイズ
     */
 
     const canvas =
@@ -1625,6 +1750,7 @@ async function saveCollectionImage() {
     ctx.fillStyle =
       "#fff7fd";
 
+
     ctx.fillRect(
       0,
       0,
@@ -1633,18 +1759,21 @@ async function saveCollectionImage() {
     );
 
 
-    /*
-      上部タイトル
-    */
+    /* =====================================================
+       タイトル
+    ===================================================== */
 
     ctx.fillStyle =
       "#e85b9d";
 
+
     ctx.font =
       "bold 30px sans-serif";
 
+
     ctx.textAlign =
       "left";
+
 
     ctx.textBaseline =
       "top";
@@ -1657,12 +1786,13 @@ async function saveCollectionImage() {
     );
 
 
-    /*
-      タブ名
-    */
+    /* =====================================================
+       タブ名
+    ===================================================== */
 
     ctx.fillStyle =
       "#777";
+
 
     ctx.font =
       "bold 18px sans-serif";
@@ -1671,7 +1801,9 @@ async function saveCollectionImage() {
     const tabLabel =
       activeTab === "all"
         ? "すべて"
-        : getSeriesLabel(activeTab);
+        : getSeriesLabel(
+            activeTab
+          );
 
 
     ctx.fillText(
@@ -1681,12 +1813,13 @@ async function saveCollectionImage() {
     );
 
 
-    /*
-      所持率
-    */
+    /* =====================================================
+       所持率
+    ===================================================== */
 
     ctx.fillStyle =
       "#e85b9d";
+
 
     ctx.font =
       "bold 18px sans-serif";
@@ -1699,12 +1832,9 @@ async function saveCollectionImage() {
     );
 
 
-    /*
-      カード描画
-
-      Promiseを順番に処理して
-      Canvasへの描画順を安定させる。
-    */
+    /* =====================================================
+       カード描画
+    ===================================================== */
 
     for (
       let i = 0;
@@ -1756,13 +1886,14 @@ async function saveCollectionImage() {
     }
 
 
-    /*
-      PNG化
-    */
+    /* =====================================================
+       PNG生成
+    ===================================================== */
 
     const blob =
       await new Promise(
         resolve => {
+
           canvas.toBlob(
             resolve,
             "image/png"
@@ -1772,15 +1903,16 @@ async function saveCollectionImage() {
 
 
     if (!blob) {
+
       throw new Error(
         "PNGの生成に失敗しました。"
       );
     }
 
 
-    /*
-      ファイル名
-    */
+    /* =====================================================
+       ファイル名
+    ===================================================== */
 
     const date =
       new Date();
@@ -1796,9 +1928,9 @@ async function saveCollectionImage() {
       `aikatsu-encore-${activeTab}-${dateString}.png`;
 
 
-    /*
-      ダウンロード
-    */
+    /* =====================================================
+       ダウンロード
+    ===================================================== */
 
     const url =
       URL.createObjectURL(
@@ -1814,6 +1946,7 @@ async function saveCollectionImage() {
 
     link.href =
       url;
+
 
     link.download =
       fileName;
@@ -1831,14 +1964,16 @@ async function saveCollectionImage() {
 
 
     /*
-      後片付け
+      URL解放
     */
 
     setTimeout(
       () => {
+
         URL.revokeObjectURL(
           url
         );
+
       },
       1000
     );
@@ -1929,18 +2064,11 @@ function setupClearButton() {
       }
 
 
-      /*
-        所持データ削除
-      */
-
       owned = {};
+
 
       saveOwned();
 
-
-      /*
-        表示更新
-      */
 
       render();
 
@@ -1950,7 +2078,7 @@ function setupClearButton() {
 
 
       /*
-        URLの共有ハッシュも削除
+        URL共有データも削除
       */
 
       history.replaceState(
