@@ -78,7 +78,7 @@ header h1 {
   background: white;
   border-bottom: 1px solid #eee;
   position: sticky;
-  top: 110px;
+  top: var(--header-height, 110px);
   z-index: 90;
 }
 
