@@ -1,5 +1,5 @@
 /* =========================================================
-   基本
+   基本設定
 ========================================================= */
 
 * {
@@ -22,38 +22,21 @@ body {
     sans-serif;
 
   font-weight: 500;
-
   color: #333;
 
   margin: 0;
-
   padding-bottom: 40px;
 
   min-height: 100vh;
 
   background-color: #fff7fd;
 
+  /* ダイヤ柄 */
   background-image:
-    linear-gradient(
-      58deg,
-      #ffebfa 26%,
-      transparent 26.5%
-    ),
-    linear-gradient(
-      -58deg,
-      #ffebfa 26%,
-      transparent 26.5%
-    ),
-    linear-gradient(
-      58deg,
-      transparent 73.5%,
-      #ffebfa 74%
-    ),
-    linear-gradient(
-      -58deg,
-      transparent 73.5%,
-      #ffebfa 74%
-    );
+    linear-gradient(58deg, #ffebfa 26%, transparent 26.5%),
+    linear-gradient(-58deg, #ffebfa 26%, transparent 26.5%),
+    linear-gradient(58deg, transparent 73.5%, #ffebfa 74%),
+    linear-gradient(-58deg, transparent 73.5%, #ffebfa 74%);
 
   background-size: 52px 80px;
 
@@ -75,19 +58,18 @@ header {
   background:
     linear-gradient(
       135deg,
-      #f96eb4 0%,
-      #fb80bd 45%,
+      #fb76b8 0%,
+      #ff8fc7 50%,
       #ff9ecd 100%
     );
 
-  color: white;
+  color: #fff;
 
   padding: 16px;
 
   text-align: center;
 
   position: sticky;
-
   top: 0;
 
   z-index: 100;
@@ -116,7 +98,7 @@ header h1 {
   letter-spacing: 0.03em;
 
   text-shadow:
-    0 1px 2px rgba(150, 40, 100, 0.15);
+    0 1px 2px rgba(180, 60, 120, 0.2);
 }
 
 
@@ -139,19 +121,13 @@ header h1 {
 .btn {
   border: none;
 
-  border-radius: 20px;
+  border-radius: 999px;
 
   padding: 8px 15px;
 
-  font-family:
-    "Hiragino Maru Gothic ProN",
-    "Hiragino Maru Gothic Pro",
-    "Yu Gothic",
-    "YuGothic",
-    "Meiryo",
-    sans-serif;
+  font-family: inherit;
 
-  font-size: 0.88rem;
+  font-size: 0.9rem;
 
   font-weight: 700;
 
@@ -159,7 +135,10 @@ header h1 {
 
   transition:
     transform 0.15s,
+    box-shadow 0.15s,
     opacity 0.15s;
+
+  white-space: nowrap;
 }
 
 .btn:active {
@@ -167,27 +146,39 @@ header h1 {
 }
 
 
-/* クリア */
+/* =========================================================
+   すべてクリア
+========================================================= */
 
 .btn.danger {
-  background: #ff5b70;
+  background: #ff5570;
 
-  color: white;
+  color: #fff;
 
   box-shadow:
-    0 2px 5px rgba(180, 50, 70, 0.2);
+    0 2px 5px rgba(200, 40, 80, 0.25);
+}
+
+.btn.danger:hover {
+  background: #ff4261;
 }
 
 
-/* 画像保存 */
+/* =========================================================
+   画像保存
+========================================================= */
 
-.btn.image-save {
-  background: white;
+.btn.save {
+  background: #fff;
 
-  color: #e65c9d;
+  color: #e85b9d;
 
   box-shadow:
-    0 2px 5px rgba(150, 50, 100, 0.15);
+    0 2px 5px rgba(180, 70, 130, 0.2);
+}
+
+.btn.save:hover {
+  background: #fff5fa;
 }
 
 
@@ -204,7 +195,7 @@ header h1 {
 
   gap: 7px;
 
-  padding: 8px 15px;
+  padding: 8px 16px;
 
   background: #000;
 
@@ -212,15 +203,9 @@ header h1 {
 
   border-radius: 999px;
 
-  font-family:
-    "Hiragino Maru Gothic ProN",
-    "Hiragino Maru Gothic Pro",
-    "Yu Gothic",
-    "YuGothic",
-    "Meiryo",
-    sans-serif;
+  font-family: inherit;
 
-  font-size: 0.88rem;
+  font-size: 0.9rem;
 
   font-weight: 700;
 
@@ -235,6 +220,8 @@ header h1 {
     background 0.15s;
 
   line-height: 1;
+
+  white-space: nowrap;
 }
 
 .x-share-btn:hover {
@@ -253,44 +240,44 @@ header h1 {
 
 
 /* =========================================================
-   シリーズタブ
+   タブ
 ========================================================= */
 
 .tabs {
   display: flex;
 
-  background: white;
+  background: rgba(255, 255, 255, 0.98);
 
-  border-bottom: 1px solid #eee;
+  border-bottom: 1px solid #f0dce8;
 
   position: sticky;
 
+  /*
+    JavaScriptから実際のヘッダー高さを設定する。
+    初期値はスマホ・PCどちらでも大きくズレないようにする。
+  */
   top: var(--header-height, 110px);
 
   z-index: 90;
 
   box-shadow:
-    0 1px 3px rgba(0, 0, 0, 0.04);
+    0 2px 5px rgba(180, 100, 140, 0.08);
 }
 
 .tab {
   flex: 1;
 
-  padding: 13px 4px;
+  min-width: 0;
+
+  padding: 13px 4px 11px;
 
   border: none;
 
-  background: none;
+  background: transparent;
 
-  font-family:
-    "Hiragino Maru Gothic ProN",
-    "Hiragino Maru Gothic Pro",
-    "Yu Gothic",
-    "YuGothic",
-    "Meiryo",
-    sans-serif;
+  font-family: inherit;
 
-  font-size: 0.9rem;
+  font-size: 0.92rem;
 
   font-weight: 700;
 
@@ -301,24 +288,22 @@ header h1 {
   transition:
     color 0.2s,
     background 0.2s;
+
+  position: relative;
+}
+
+.tab:hover {
+  background: #fff7fb;
+
+  color: #e88bb5;
 }
 
 .tab.active {
-  color: #ed62a8;
+  color: #f06aa9;
 
-  border-bottom:
-    3px solid #fb76b8;
+  background: #fff;
 
-  background:
-    linear-gradient(
-      to bottom,
-      #fff,
-      #fff8fc
-    );
-}
-
-.tab:active {
-  background: #fff0f8;
+  border-bottom: 3px solid #fb76b8;
 }
 
 
@@ -329,128 +314,137 @@ header h1 {
 .stats {
   text-align: center;
 
-  padding: 9px 10px;
+  padding: 10px 8px;
 
-  font-size: 0.88rem;
+  font-size: 0.9rem;
 
   font-weight: 600;
 
-  color: #666;
+  color: #777;
 
-  background: rgba(255, 255, 255, 0.96);
+  background: rgba(255, 255, 255, 0.95);
 
-  border-bottom: 1px solid #eee;
+  border-bottom: 1px solid #f0e2ea;
+
+  letter-spacing: 0.02em;
 }
 
 .stats span {
-  color: #e65c9d;
+  color: #e65b9c;
 
   font-weight: 700;
 }
 
 
 /* =========================================================
-   表示設定
+   表示設定ボタン
 ========================================================= */
 
-.display-settings {
-  background: white;
+.display-controls {
+  display: flex;
 
-  border-bottom: 1px solid #eee;
+  justify-content: center;
+
+  align-items: center;
+
+  padding: 10px 12px 2px;
 }
 
 
-/* ---------------------------------------------------------
-   ＋ / − ボタン
---------------------------------------------------------- */
+/*
+  「表示設定」ではなく、
 
-.grid-toggle-btn {
-  width: 100%;
+  拡大  ＋
 
-  display: flex;
+  ↓
+
+  縮小  −
+
+  と変化するボタン
+*/
+
+.display-toggle {
+  display: inline-flex;
 
   align-items: center;
 
   justify-content: center;
 
-  gap: 9px;
+  gap: 8px;
 
-  padding: 9px 16px;
+  min-width: 82px;
 
-  border: none;
+  padding: 6px 13px;
 
-  background:
-    linear-gradient(
-      90deg,
-      #fff,
-      #fff9fc,
-      #fff
-    );
+  border: 1px solid #f2a7c9;
 
-  color: #777;
+  border-radius: 999px;
 
-  font-family:
-    "Hiragino Maru Gothic ProN",
-    "Hiragino Maru Gothic Pro",
-    "Yu Gothic",
-    "YuGothic",
-    "Meiryo",
-    sans-serif;
+  background: rgba(255, 255, 255, 0.95);
 
-  font-size: 0.86rem;
+  color: #e56b9f;
+
+  font-family: inherit;
+
+  font-size: 0.8rem;
 
   font-weight: 700;
 
   cursor: pointer;
 
-  border-bottom: 1px solid #f3dce9;
+  box-shadow:
+    0 1px 4px rgba(200, 90, 140, 0.12);
 
   transition:
     background 0.2s,
-    color 0.2s;
+    color 0.2s,
+    transform 0.15s,
+    box-shadow 0.2s;
 }
 
-.grid-toggle-btn:hover {
-  background: #fff2f9;
+.display-toggle:hover {
+  background: #fff1f8;
 
-  color: #e65c9d;
+  box-shadow:
+    0 2px 6px rgba(200, 90, 140, 0.18);
 }
 
-.grid-toggle-label {
+.display-toggle:active {
+  transform: scale(0.94);
+}
+
+
+/* テキスト */
+
+.display-toggle-label {
   line-height: 1;
 }
 
 
-/* ---------------------------------------------------------
-   ＋ / − アイコン
---------------------------------------------------------- */
+/* ＋ / − */
 
-.grid-toggle-icon {
-  width: 23px;
-
-  height: 23px;
-
-  display: flex;
+.display-toggle-icon {
+  display: inline-flex;
 
   align-items: center;
 
   justify-content: center;
 
+  width: 18px;
+
+  height: 18px;
+
   border-radius: 50%;
 
-  background: #fb76b8;
+  background: #f783b6;
 
-  color: white;
+  color: #fff;
 
-  font-family:
-    Arial,
-    sans-serif;
+  font-size: 15px;
 
-  font-size: 17px;
+  font-weight: 700;
 
-  font-weight: 400;
-
-  line-height: 1;
+  line-height: 18px;
 
   transition:
     transform 0.25s ease,
@@ -459,165 +453,40 @@ header h1 {
 
 
 /*
-  開いたとき
+  拡大状態
+
+  + → −
 */
 
-.grid-toggle-btn[aria-expanded="true"]
-.grid-toggle-icon {
-  background: #e95da7;
+.display-toggle.is-expanded .display-toggle-icon {
+  background: #e965a3;
 
   transform: rotate(180deg);
 }
 
 
 /* =========================================================
-   表示設定パネル
-========================================================= */
-
-.grid-settings {
-  display: grid;
-
-  grid-template-rows: 0fr;
-
-  overflow: hidden;
-
-  background: #fff;
-
-  padding: 0 16px;
-
-  transition:
-    grid-template-rows 0.25s ease,
-    padding 0.25s ease;
-}
-
-.grid-settings.open {
-  grid-template-rows: 1fr;
-
-  padding:
-    10px 16px 12px;
-}
-
-.grid-settings-inner {
-  min-height: 0;
-
-  overflow: hidden;
-
-  text-align: center;
-}
-
-
-/* 設定タイトル */
-
-.grid-settings-title {
-  margin-bottom: 8px;
-
-  color: #999;
-
-  font-size: 0.76rem;
-
-  font-weight: 700;
-}
-
-
-/* =========================================================
-   横3枚 / 横6枚
-========================================================= */
-
-.grid-size-buttons {
-  display: flex;
-
-  justify-content: center;
-
-  gap: 8px;
-
-  width: 100%;
-}
-
-.grid-size-btn {
-  flex: 1;
-
-  max-width: 180px;
-
-  padding: 7px 12px;
-
-  border:
-    2px solid #f5b4d2;
-
-  border-radius: 999px;
-
-  background: white;
-
-  color: #df6b9e;
-
-  font-family:
-    "Hiragino Maru Gothic ProN",
-    "Hiragino Maru Gothic Pro",
-    "Yu Gothic",
-    "YuGothic",
-    "Meiryo",
-    sans-serif;
-
-  font-size: 0.82rem;
-
-  font-weight: 700;
-
-  cursor: pointer;
-
-  transition:
-    background 0.2s,
-    color 0.2s,
-    transform 0.15s,
-    border-color 0.2s;
-}
-
-.grid-size-btn:hover {
-  background: #fff0f7;
-}
-
-.grid-size-btn.active {
-  background: #fb76b8;
-
-  color: white;
-
-  border-color: #fb76b8;
-
-  box-shadow:
-    0 2px 5px rgba(230, 90, 160, 0.2);
-}
-
-.grid-size-btn:active {
-  transform: scale(0.95);
-}
-
-
-/* =========================================================
-   カードグリッド
+   カード一覧
 ========================================================= */
 
 .card-grid {
   display: grid;
 
-  gap: 12px;
+  /*
+    PCは10枚固定
+  */
 
-  padding: 16px;
+  grid-template-columns: repeat(10, minmax(0, 1fr));
+
+  gap: 10px;
+
+  padding: 14px 16px 24px;
 
   width: 100%;
-}
 
+  max-width: 1600px;
 
-/* 横3枚 */
-
-.card-grid.columns-3 {
-  grid-template-columns:
-    repeat(3, minmax(0, 1fr));
-}
-
-
-/* 横6枚 */
-
-.card-grid.columns-6 {
-  grid-template-columns:
-    repeat(6, minmax(0, 1fr));
+  margin: 0 auto;
 }
 
 
@@ -630,7 +499,7 @@ header h1 {
 
   aspect-ratio: 59 / 86;
 
-  border-radius: 8px;
+  border-radius: 7px;
 
   overflow: hidden;
 
@@ -644,12 +513,23 @@ header h1 {
   background: #2a2a2a;
 
   transition:
-    transform 0.15s;
+    transform 0.15s,
+    box-shadow 0.15s;
+}
+
+.card-item:hover {
+  box-shadow:
+    0 4px 10px rgba(0, 0, 0, 0.18);
 }
 
 .card-item:active {
   transform: scale(0.95);
 }
+
+
+/* =========================================================
+   カード画像
+========================================================= */
 
 .card-item img {
   width: 100%;
@@ -665,7 +545,7 @@ header h1 {
 
 
 /* =========================================================
-   横長カード
+   横長画像
 ========================================================= */
 
 .card-item img.rotate-90 {
@@ -692,7 +572,7 @@ header h1 {
 
 
 /* =========================================================
-   未所持
+   未所持カード
 ========================================================= */
 
 .card-item.unowned img {
@@ -719,11 +599,11 @@ header h1 {
 
   background: #ff4757;
 
-  color: white;
+  color: #fff;
 
   font-size: 12px;
 
-  font-weight: bold;
+  font-weight: 700;
 
   border-radius: 11px;
 
@@ -739,6 +619,8 @@ header h1 {
     0 1px 3px rgba(0, 0, 0, 0.3);
 
   z-index: 10;
+
+  line-height: 1;
 }
 
 .badge.hidden {
@@ -748,26 +630,34 @@ header h1 {
 
 /* =========================================================
    PC
+   横10枚固定
 ========================================================= */
 
-@media (min-width: 768px) {
+@media (min-width: 769px) {
 
   .card-grid {
-    max-width: 1100px;
-
-    margin-left: auto;
-
-    margin-right: auto;
-  }
-
-  .card-grid.columns-3 {
-    grid-template-columns:
-      repeat(6, minmax(0, 1fr));
-  }
-
-  .card-grid.columns-6 {
     grid-template-columns:
       repeat(10, minmax(0, 1fr));
+  }
+
+}
+
+
+/* =========================================================
+   タブレット
+========================================================= */
+
+@media (min-width: 601px) and (max-width: 768px) {
+
+  .card-grid {
+    grid-template-columns:
+      repeat(8, minmax(0, 1fr));
+
+    gap: 9px;
+
+    padding-left: 12px;
+
+    padding-right: 12px;
   }
 
 }
@@ -780,8 +670,7 @@ header h1 {
 @media (max-width: 600px) {
 
   header {
-    padding:
-      13px 10px;
+    padding: 13px 10px 12px;
   }
 
   header h1 {
@@ -790,52 +679,87 @@ header h1 {
     margin-bottom: 10px;
   }
 
+
   .actions {
     gap: 6px;
   }
 
+
   .btn,
   .x-share-btn {
-    padding:
-      7px 11px;
+    padding: 7px 11px;
 
     font-size: 0.78rem;
   }
 
+
   .tabs {
-    top: var(--header-height, 104px);
+    top: var(--header-height, 105px);
   }
+
 
   .tab {
-    padding:
-      12px 2px;
+    padding: 11px 2px 9px;
 
     font-size: 0.82rem;
   }
+
 
   .stats {
+    padding: 8px 5px;
+
     font-size: 0.82rem;
   }
 
-  .card-grid {
-    gap: 7px;
 
-    padding: 10px;
+  .display-controls {
+    padding-top: 8px;
+
+    padding-bottom: 2px;
   }
 
-  .card-grid.columns-3 {
+
+  .card-grid {
+
+    /*
+      デフォルト：横3枚
+    */
+
     grid-template-columns:
       repeat(3, minmax(0, 1fr));
+
+    gap: 8px;
+
+    padding:
+      10px
+      8px
+      20px;
   }
 
-  .card-grid.columns-6 {
+
+  /*
+    「拡大」を押した状態
+
+    横6枚
+  */
+
+  .card-grid.expanded {
+
     grid-template-columns:
       repeat(6, minmax(0, 1fr));
+
+    gap: 4px;
+
+    padding-left: 5px;
+
+    padding-right: 5px;
   }
+
 
   .card-item {
     border-radius: 5px;
   }
+
 
   .badge {
     top: 2px;
@@ -846,37 +770,125 @@ header h1 {
 
     height: 18px;
 
+    font-size: 10px;
+
     border-radius: 9px;
 
     padding: 0 4px;
-
-    font-size: 10px;
   }
 
 }
 
 
 /* =========================================================
-   極小画面
+   小さいスマホ
 ========================================================= */
 
-@media (max-width: 360px) {
+@media (max-width: 400px) {
+
+  .actions {
+    gap: 5px;
+  }
+
+
+  .btn,
+  .x-share-btn {
+    padding: 7px 9px;
+
+    font-size: 0.74rem;
+  }
+
 
   .card-grid {
-    gap: 5px;
+    gap: 6px;
 
-    padding: 8px;
+    padding-left: 6px;
+
+    padding-right: 6px;
   }
 
-  .grid-toggle-btn {
-    font-size: 0.8rem;
+
+  .card-grid.expanded {
+    gap: 3px;
+
+    padding-left: 3px;
+
+    padding-right: 3px;
   }
 
-  .grid-size-btn {
-    font-size: 0.76rem;
+}
 
-    padding:
-      6px 8px;
+
+/* =========================================================
+   画像保存用の一時キャンバスなど
+   JavaScript側で使用する要素を画面外に置く場合
+========================================================= */
+
+#captureArea {
+  position: absolute;
+
+  left: -99999px;
+
+  top: 0;
+
+  pointer-events: none;
+
+  background: #fff;
+}
+
+
+/* =========================================================
+   保存中などの状態
+========================================================= */
+
+.is-saving {
+  opacity: 0.65;
+
+  pointer-events: none;
+}
+
+
+/* =========================================================
+   アニメーション
+========================================================= */
+
+@keyframes displayTogglePop {
+
+  0% {
+    transform: scale(1);
+  }
+
+  50% {
+    transform: scale(1.08);
+  }
+
+  100% {
+    transform: scale(1);
+  }
+
+}
+
+.display-toggle.changed {
+  animation: displayTogglePop 0.25s ease;
+}
+
+
+/* =========================================================
+   アニメーションを減らす設定の端末への配慮
+========================================================= */
+
+@media (prefers-reduced-motion: reduce) {
+
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+
+    transition-duration: 0.01ms !important;
+
+    animation-duration: 0.01ms !important;
+
+    animation-iteration-count: 1 !important;
   }
 
 }
