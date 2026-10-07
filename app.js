@@ -1,5 +1,5 @@
 const STORAGE_KEY = "aikatsu_encore_owned";
-let owned = {}; // { cardId: number (0-5) }
+let owned = {}; // { cardId: number (0-3) }
 
 // ==================== 所持データ ====================
 
@@ -63,14 +63,17 @@ function render() {
       rotateIfLandscape();
     }
 
+    // 所持数バッジ
     const badge = document.createElement("div");
     badge.className = `badge ${count === 0 ? "hidden" : ""}`;
-    badge.textContent = count >= 5 ? "5+" : count;
+    badge.textContent = count >= 3 ? "3+" : count;
 
     item.append(img, badge);
 
+    // クリックで
+    // 0 → 1 → 2 → 3 → 0
     item.addEventListener("click", () => {
-      const next = ((owned[card.id] || 0) + 1) % 6;
+      const next = ((owned[card.id] || 0) + 1) % 4;
 
       if (next === 0) {
         delete owned[card.id];
@@ -99,7 +102,11 @@ function updateStats() {
 // ==================== 共有 ====================
 
 function encodeState() {
-  const counts = CARDS.map(card => owned[card.id] || 0);
+  const counts = CARDS.map(card => {
+    // 念のため0〜3に制限
+    return Math.min(owned[card.id] || 0, 3);
+  });
+
   return btoa(counts.join(""))
     .replace(/=/g, "")
     .replace(/\+/g, "-")
@@ -108,11 +115,19 @@ function encodeState() {
 
 function decodeState(hash) {
   try {
-    const str = atob(hash.replace(/-/g, "+").replace(/_/g, "/"));
+    const str = atob(
+      hash
+        .replace(/-/g, "+")
+        .replace(/_/g, "/")
+    );
 
     return CARDS.reduce((result, card, i) => {
-      const count = Number(str[i] || 0);
-      if (count > 0) result[card.id] = count;
+      const count = Math.min(Number(str[i] || 0), 3);
+
+      if (count > 0) {
+        result[card.id] = count;
+      }
+
       return result;
     }, {});
   } catch {
@@ -122,6 +137,7 @@ function decodeState(hash) {
 
 function applyHash() {
   const hash = location.hash.slice(1);
+
   if (!hash) return;
 
   const decoded = decodeState(hash);
@@ -150,7 +166,9 @@ function shareToX() {
     "https://twitter.com/intent/tweet" +
     "?text=" + encodeURIComponent(text) +
     "&url=" + encodeURIComponent(url) +
-    "&hashtags=" + encodeURIComponent("アイカツ,アイカツアンコール,aikatsu,aikatsuencore");
+    "&hashtags=" + encodeURIComponent(
+      "アイカツ,アイカツアンコール,aikatsu,aikatsuencore"
+    );
 
   document.getElementById("shareBtn").href = shareUrl;
 }
@@ -172,6 +190,7 @@ function init() {
         .forEach(t => t.classList.remove("active"));
 
       tab.classList.add("active");
+
       render();
     });
   });
@@ -186,7 +205,12 @@ function init() {
     render();
     updateStats();
 
-    history.replaceState(null, "", location.pathname + location.search);
+    history.replaceState(
+      null,
+      "",
+      location.pathname + location.search
+    );
+
     shareToX();
   });
 }
