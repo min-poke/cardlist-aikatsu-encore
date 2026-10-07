@@ -1306,7 +1306,27 @@ async function drawCardToCanvas(
       画像描画だけに限定する。
     */
 
-    ctx.save();
+     ctx.save();
+
+     /*
+       未所持カードは
+       保存画像でも確実にグレー表示にする。
+       
+       CanvasではCSSの
+       .card-item.unowned img
+       は反映されないため、
+       Canvas側で直接フィルターを設定する。
+     */
+     if (count === 0) {
+
+       ctx.filter =
+         "grayscale(100%) brightness(0.7)";
+
+     } else {
+
+       ctx.filter =
+         "none";
+     }
 
 
     if (count === 0) {
