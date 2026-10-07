@@ -2,7 +2,10 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0, maximum-scale=1.0"
+  >
 
   <title>アイカツ！アンコール カード所持率チェッカー</title>
 
@@ -11,12 +14,9 @@
 
 <body>
 
-  <!-- ================================
-       ヘッダー
-  ================================= -->
+  <!-- ==================== ヘッダー ==================== -->
 
-  <header id="siteHeader">
-
+  <header>
     <h1>
       アイカツ！アンコール<br>
       カード所持率チェッカー
@@ -24,6 +24,7 @@
 
     <div class="actions">
 
+      <!-- すべてクリア -->
       <button
         id="clearBtn"
         class="btn danger"
@@ -32,10 +33,10 @@
         すべてクリア
       </button>
 
-      <!-- 画像保存 -->
+      <!-- 所持状況を画像保存 -->
       <button
         id="saveImageBtn"
-        class="btn image-save"
+        class="btn save"
         type="button"
       >
         画像保存
@@ -49,7 +50,6 @@
         target="_blank"
         rel="noopener noreferrer"
       >
-
         <svg
           viewBox="0 0 24 24"
           width="18"
@@ -57,21 +57,19 @@
           fill="currentColor"
           aria-hidden="true"
         >
-          <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
+          <path
+            d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"
+          />
         </svg>
 
         <span>投稿する</span>
-
       </a>
 
     </div>
-
   </header>
 
 
-  <!-- ================================
-       シリーズタブ
-  ================================= -->
+  <!-- ==================== タブ ==================== -->
 
   <nav class="tabs">
 
@@ -102,9 +100,7 @@
   </nav>
 
 
-  <!-- ================================
-       所持率
-  ================================= -->
+  <!-- ==================== 所持状況 ==================== -->
 
   <div class="stats">
 
@@ -122,86 +118,39 @@
   </div>
 
 
-  <!-- ================================
-       表示設定
-  ================================= -->
+  <!-- ==================== 表示設定 ==================== -->
 
-  <section class="display-settings">
+  <div class="display-controls">
 
     <button
-      id="gridToggleBtn"
-      class="grid-toggle-btn"
+      id="displayToggleBtn"
+      class="display-toggle"
       type="button"
+      aria-label="カード表示枚数を変更"
       aria-expanded="false"
-      aria-controls="gridSettings"
     >
-
-      <span class="grid-toggle-label">
-        表示設定
-      </span>
+      <span class="display-toggle-label">拡大</span>
 
       <span
-        id="gridToggleIcon"
-        class="grid-toggle-icon"
+        class="display-toggle-icon"
         aria-hidden="true"
       >
-        ＋
+        +
       </span>
-
     </button>
 
-
-    <div
-      id="gridSettings"
-      class="grid-settings"
-    >
-
-      <div class="grid-settings-inner">
-
-        <div class="grid-settings-title">
-          カードの表示枚数
-        </div>
-
-        <div class="grid-size-buttons">
-
-          <button
-            class="grid-size-btn active"
-            data-columns="3"
-            type="button"
-          >
-            横3枚
-          </button>
-
-          <button
-            class="grid-size-btn"
-            data-columns="6"
-            type="button"
-          >
-            横6枚
-          </button>
-
-        </div>
-
-      </div>
-
-    </div>
-
-  </section>
+  </div>
 
 
-  <!-- ================================
-       カード一覧
-  ================================= -->
+  <!-- ==================== カード一覧 ==================== -->
 
   <main
     id="cardGrid"
-    class="card-grid columns-3"
+    class="card-grid"
   ></main>
 
 
-  <!-- ================================
-       JavaScript
-  ================================= -->
+  <!-- ==================== スクリプト ==================== -->
 
   <script src="cards.js"></script>
   <script src="app.js"></script>
