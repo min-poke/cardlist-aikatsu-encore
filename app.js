@@ -1045,12 +1045,20 @@ function updateDisplayToggle() {
     );
 
 
-  if (isExpanded) {
+  /*
+    ボタンには
+    「押したらどうなるか」を表示する。
 
-    /*
-      現在は拡大状態なので
-      「縮小」ボタンにする
-    */
+    通常状態
+      → 押すと拡大
+      → 「拡大 ＋」
+
+    拡大状態
+      → 押すと縮小
+      → 「縮小 −」
+  */
+
+  if (isExpanded) {
 
     if (label) {
 
@@ -1078,11 +1086,6 @@ function updateDisplayToggle() {
 
 
   } else {
-
-    /*
-      現在は通常状態なので
-      「拡大」ボタンにする
-    */
 
     if (label) {
 
