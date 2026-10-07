@@ -1,0 +1,156 @@
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Hiragino Sans", sans-serif;
+  background: #f8f0f8;
+  color: #333;
+  padding-bottom: 40px;
+}
+
+header {
+  background: linear-gradient(135deg, #ff69b4, #ff9ecd);
+  color: white;
+  padding: 16px;
+  text-align: center;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+}
+
+header h1 {
+  font-size: 1.25rem;
+  line-height: 1.3;
+  margin-bottom: 12px;
+}
+
+.actions {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+}
+
+.btn {
+  border: none;
+  border-radius: 20px;
+  padding: 8px 18px;
+  font-size: 0.95rem;
+  font-weight: bold;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.btn.primary {
+  background: #1da1f2;
+  color: white;
+}
+
+.btn.danger {
+  background: #ff4757;
+  color: white;
+}
+
+.btn:active {
+  transform: scale(0.96);
+}
+
+.tabs {
+  display: flex;
+  background: white;
+  border-bottom: 1px solid #eee;
+  position: sticky;
+  top: 110px;
+  z-index: 90;
+}
+
+.tab {
+  flex: 1;
+  padding: 14px 0;
+  border: none;
+  background: none;
+  font-size: 0.95rem;
+  font-weight: bold;
+  color: #888;
+  cursor: pointer;
+}
+
+.tab.active {
+  color: #ff69b4;
+  border-bottom: 3px solid #ff69b4;
+}
+
+.stats {
+  text-align: center;
+  padding: 10px;
+  font-size: 0.9rem;
+  background: #fff;
+  border-bottom: 1px solid #eee;
+}
+
+.card-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+  gap: 12px;
+  padding: 16px;
+}
+
+.card-item {
+  position: relative;
+  aspect-ratio: 59 / 86;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.12);
+  cursor: pointer;
+  user-select: none;
+  background: #ddd;
+  transition: transform 0.15s;
+}
+
+.card-item:active {
+  transform: scale(0.95);
+}
+
+.card-item img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.card-item.unowned img {
+  filter: grayscale(100%) brightness(0.7);
+}
+
+.badge {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  min-width: 22px;
+  height: 22px;
+  background: #ff4757;
+  color: white;
+  font-size: 12px;
+  font-weight: bold;
+  border-radius: 11px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 5px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+  z-index: 10;
+}
+
+.badge.hidden {
+  display: none;
+}
+
+/* スマホ向け微調整 */
+@media (max-width: 400px) {
+  .card-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}

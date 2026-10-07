@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+  <title>アイカツ！アンコール カード所持管理</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header>
+    <h1>アイカツ！アンコール<br>カード所持管理</h1>
+    <div class="actions">
+      <button id="clearBtn" class="btn danger">すべてクリア</button>
+      <button id="shareBtn" class="btn primary">Xに投稿</button>
+    </div>
+  </header>
+
+  <nav class="tabs">
+    <button class="tab active" data-tab="all">すべて</button>
+    <button class="tab" data-tab="1">1弾</button>
+    <button class="tab" data-tab="promo">プロモーション</button>
+  </nav>
+
+  <div class="stats">
+    所持：<span id="ownedCount">0</span> / <span id="totalCount">0</span> 枚
+  </div>
+
+  <main id="cardGrid" class="card-grid"></main>
+
+  <script src="cards.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
