@@ -976,9 +976,15 @@ function shareToX() {
     getPercentage(list);
 
 
-  const text =
-    "アイカツ！アンコール カード所持率チェッカー\n" +
-    `あなたのカード所持率は${percentage}%でした。`;
+const tabLabel =
+  activeTab === "all"
+    ? ""
+    : getSeriesLabel(activeTab);
+
+
+const text =
+  "アイカツ！アンコール カード所持率チェッカー\n" +
+  `あなたの${tabLabel}${tabLabel ? "の" : ""}カード所持率は${percentage}%でした。`;
 
 
   const shareUrl =
@@ -1941,9 +1947,21 @@ async function saveCollectionImage() {
       "bold 18px sans-serif";
 
 
+    /*
+      タブ名の長さに応じて
+      「所持」の開始位置を自動調整する。
+    */
+    const tabWidth =
+      ctx.measureText(tabLabel).width;
+
+    const ownedX =
+      horizontalPadding +
+      tabWidth +
+      24;
+
     ctx.fillText(
       `所持：${getOwnedCount(cards)} / ${cards.length}枚（${getPercentage(cards)}%）`,
-      horizontalPadding + 110,
+      ownedX,
       58
     );
 
