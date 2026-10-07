@@ -3,12 +3,12 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
-  <title>アイカツ！アンコール カード所持管理</title>
+  <title>アイカツ！アンコール カード所持率チェッカー</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
   <header>
-    <h1>アイカツ！アンコール<br>カード所持管理</h1>
+    <h1>アイカツ！アンコール<br>カード所持率チェッカー</h1>
   <div class="actions">
     <button id="clearBtn" class="btn danger">すべてクリア</button>
     <a id="shareBtn" class="x-share-btn" href="#" target="_blank" rel="noopener noreferrer">
@@ -26,9 +26,10 @@
     <button class="tab" data-tab="promo">プロモーション</button>
   </nav>
 
-  <div class="stats">
-    所持：<span id="ownedCount">0</span> / <span id="totalCount">0</span> 枚
-  </div>
+<div class="stats">
+  所持：<span id="ownedCount">0</span> / <span id="totalCount">0</span> 枚
+  （<span id="ownedPercentage">0</span>%）
+</div>
 
   <main id="cardGrid" class="card-grid"></main>
 
