@@ -1011,23 +1011,13 @@ function shareToX() {
 /*
   スマホのみ使用。
 
-  今回は表示を逆にする。
-
   通常状態
-    → 「縮小」表示
+    → 「縮小」
     → ＋
 
   拡大状態
-    → 「拡大」表示
+    → 「拡大」
     → −
-
-  つまり、
-
-  ボタンに表示されている文字は
-  「押した後にどうなるか」ではなく、
-  「現在の状態」を表す。
-
-  CSS側でPCでは非表示にする。
 */
 
 function updateDisplayToggle() {
@@ -1057,10 +1047,6 @@ function updateDisplayToggle() {
 
   if (isExpanded) {
 
-    /*
-      現在は拡大状態
-    */
-
     if (label) {
 
       label.textContent =
@@ -1087,10 +1073,6 @@ function updateDisplayToggle() {
 
 
   } else {
-
-    /*
-      現在は通常状態
-    */
 
     if (label) {
 
@@ -1148,10 +1130,6 @@ function setupDisplayToggle() {
 
       updateDisplayToggle();
 
-
-      /*
-        ボタンアニメーション
-      */
 
       button.classList.remove(
         "changed"
@@ -1240,32 +1218,6 @@ function loadImage(src) {
    Canvasへカード画像を描画
 ========================================================= */
 
-/*
-  ここが今回の重要修正版。
-
-  横長カードの場合、
-
-  元画像
-      ──────────
-      横長
-
-  ↓ 90度回転
-
-      │
-      │
-      │
-      │
-      │
-      縦長
-
-  となるため、
-
-  「回転後の見かけ上の幅・高さ」
-  を使って縮尺を計算する。
-
-  これにより横方向へ引き伸ばされない。
-*/
-
 async function drawCardToCanvas(
   ctx,
   card,
@@ -1324,8 +1276,22 @@ async function drawCardToCanvas(
 
 
     /*
-      未所持の場合
-      CSSと同じように暗くする
+      =====================================================
+      重要：
+      未所持カードは必ずグレーにする
+      =====================================================
+
+      Canvasではfilterがブラウザによって
+      復元されないことがあるため、
+
+      「画像を描画する前にfilterを設定」
+
+      だけではなく、
+
+      「画像描画後にも確実に
+      グレー化処理を行う」
+
+      ようにする。
     */
 
     ctx.save();
@@ -1343,11 +1309,6 @@ async function drawCardToCanvas(
     ===================================================== */
 
     if (!landscape) {
-
-      /*
-        元画像そのままの比率で
-        枠内に収める。
-      */
 
       const scale =
         Math.min(
@@ -1389,21 +1350,6 @@ async function drawCardToCanvas(
 
     } else {
 
-      /*
-        90度回転した後の
-        見かけ上のサイズ。
-
-        元画像：
-          width  = 800
-          height = 550
-
-        回転後：
-          width  = 550
-          height = 800
-
-        ここを基準に縮尺を計算する。
-      */
-
       const rotatedWidth =
         imageHeight;
 
@@ -1411,11 +1357,6 @@ async function drawCardToCanvas(
       const rotatedHeight =
         imageWidth;
 
-
-      /*
-        回転後のカードが
-        枠内に完全に収まる倍率。
-      */
 
       const scale =
         Math.min(
@@ -1432,10 +1373,6 @@ async function drawCardToCanvas(
         rotatedHeight * scale;
 
 
-      /*
-        キャンバス中心を基準に90度回転。
-      */
-
       ctx.translate(
         x + width / 2,
         y + height / 2
@@ -1446,11 +1383,6 @@ async function drawCardToCanvas(
         Math.PI / 2
       );
 
-
-      /*
-        回転後の画像を
-        正しい比率で描画。
-      */
 
       ctx.drawImage(
         img,
@@ -1463,6 +1395,122 @@ async function drawCardToCanvas(
 
 
     ctx.restore();
+
+
+    /*
+      =====================================================
+      未所持カードのグレー処理を確実にする
+      =====================================================
+
+      filterだけに頼らず、
+      描画後に半透明の黒を重ねる。
+
+      これによりスマホのCanvasでも
+      0枚カードがカラーで保存される問題を防ぐ。
+    */
+
+    if (count === 0) {
+
+      ctx.save();
+
+
+      /*
+        グレースケール化
+
+        Canvas全体を再度読み取って
+        RGBを平均化する。
+
+        ※カード1枚分だけを対象にする。
+      */
+
+      try {
+
+        const imageData =
+          ctx.getImageData(
+            x,
+            y,
+            width,
+            height
+          );
+
+
+        const data =
+          imageData.data;
+
+
+        for (
+          let i = 0;
+          i < data.length;
+          i += 4
+        ) {
+
+          const gray =
+            Math.round(
+              data[i] * 0.299 +
+              data[i + 1] * 0.587 +
+              data[i + 2] * 0.114
+            );
+
+
+          /*
+            少し暗くする
+          */
+
+          const darkGray =
+            Math.round(
+              gray * 0.7
+            );
+
+
+          data[i] =
+            darkGray;
+
+          data[i + 1] =
+            darkGray;
+
+          data[i + 2] =
+            darkGray;
+        }
+
+
+        ctx.putImageData(
+          imageData,
+          x,
+          y
+        );
+
+
+      } catch (grayError) {
+
+        /*
+          getImageDataが
+          セキュリティ制限などで使えない場合の
+          フォールバック。
+
+          カード全体に暗い半透明レイヤーを重ねる。
+        */
+
+        console.warn(
+          "グレースケール処理に失敗しました。",
+          grayError
+        );
+
+
+        ctx.fillStyle =
+          "rgba(0, 0, 0, 0.30)";
+
+
+        ctx.fillRect(
+          x,
+          y,
+          width,
+          height
+        );
+      }
+
+
+      ctx.restore();
+    }
 
 
     /* =====================================================
@@ -1503,10 +1551,6 @@ async function drawCardToCanvas(
         5;
 
 
-      /*
-        赤丸
-      */
-
       ctx.fillStyle =
         "#ff4757";
 
@@ -1525,10 +1569,6 @@ async function drawCardToCanvas(
 
       ctx.fill();
 
-
-      /*
-        文字
-      */
 
       ctx.fillStyle =
         "#ffffff";
@@ -1566,10 +1606,6 @@ async function drawCardToCanvas(
       error
     );
 
-
-    /*
-      エラー時
-    */
 
     ctx.fillStyle =
       "#eeeeee";
@@ -1609,7 +1645,25 @@ async function drawCardToCanvas(
 
 
 /* =========================================================
-   所持状況を画像として保存
+   スマホ判定
+========================================================= */
+
+function isMobileDevice() {
+
+  return (
+    /Android|iPhone|iPad|iPod/i.test(
+      navigator.userAgent
+    ) ||
+    (
+      navigator.maxTouchPoints > 0 &&
+      window.innerWidth <= 900
+    )
+  );
+}
+
+
+/* =========================================================
+   所持状況を画像として保存・共有
 ========================================================= */
 
 async function saveCollectionImage() {
@@ -1661,27 +1715,13 @@ async function saveCollectionImage() {
        保存画像設定
     ===================================================== */
 
-    /*
-      1行15枚
-    */
-
     const columns =
       15;
 
 
-    /*
-      カード幅
-    */
-
     const cardWidth =
       160;
 
-
-    /*
-      縦長カード比率
-
-      59 : 86
-    */
 
     const cardHeight =
       Math.round(
@@ -1703,10 +1743,6 @@ async function saveCollectionImage() {
       100;
 
 
-    /*
-      行数
-    */
-
     const rows =
       Math.ceil(
         cards.length /
@@ -1714,9 +1750,9 @@ async function saveCollectionImage() {
       );
 
 
-    /*
-      Canvasサイズ
-    */
+    /* =====================================================
+       Canvasサイズ
+    ===================================================== */
 
     const canvas =
       document.createElement(
@@ -1739,7 +1775,10 @@ async function saveCollectionImage() {
 
     const ctx =
       canvas.getContext(
-        "2d"
+        "2d",
+        {
+          willReadFrequently: true
+        }
       );
 
 
@@ -1892,22 +1931,26 @@ async function saveCollectionImage() {
 
     const blob =
       await new Promise(
-        resolve => {
+        (resolve, reject) => {
 
           canvas.toBlob(
-            resolve,
+            result => {
+
+              if (result) {
+                resolve(result);
+              } else {
+                reject(
+                  new Error(
+                    "PNGの生成に失敗しました。"
+                  )
+                );
+              }
+
+            },
             "image/png"
           );
         }
       );
-
-
-    if (!blob) {
-
-      throw new Error(
-        "PNGの生成に失敗しました。"
-      );
-    }
 
 
     /* =====================================================
@@ -1929,7 +1972,182 @@ async function saveCollectionImage() {
 
 
     /* =====================================================
-       ダウンロード
+       スマホの場合
+       → Web Share API
+    ===================================================== */
+
+    if (
+      isMobileDevice() &&
+      navigator.share
+    ) {
+
+      /*
+        Blob → File
+      */
+
+      const file =
+        new File(
+          [blob],
+          fileName,
+          {
+            type: "image/png"
+          }
+        );
+
+
+      /*
+        画像ファイルを共有できるか確認
+      */
+
+      let canShareFile =
+        false;
+
+
+      try {
+
+        canShareFile =
+          !!(
+            navigator.canShare &&
+            navigator.canShare({
+              files: [file]
+            })
+          );
+
+      } catch (shareCheckError) {
+
+        console.warn(
+          "ファイル共有判定に失敗しました。",
+          shareCheckError
+        );
+
+        canShareFile =
+          false;
+      }
+
+
+      /*
+        画像ファイル共有
+      */
+
+      if (canShareFile) {
+
+        try {
+
+          await navigator.share({
+            title:
+              "アイカツ！アンコール カード所持状況",
+
+            text:
+              `所持率：${getPercentage(cards)}%`,
+
+            files: [file]
+          });
+
+
+          /*
+            共有成功。
+
+            iPhoneではここから
+            「写真に保存」
+            「ファイルに保存」
+            「コピー」
+            などのシステムメニューを
+            選択できる。
+          */
+
+          return;
+
+        } catch (shareError) {
+
+          /*
+            ユーザーが共有メニューを
+            キャンセルした場合。
+
+            エラー扱いにせず、
+            そのまま終了する。
+          */
+
+          if (
+            shareError &&
+            shareError.name ===
+              "AbortError"
+          ) {
+
+            return;
+          }
+
+
+          console.warn(
+            "画像共有に失敗しました。",
+            shareError
+          );
+        }
+      }
+
+
+      /*
+        ファイル共有に対応していない
+        スマホの場合は、
+        Blob URLを共有する。
+      */
+
+      try {
+
+        const blobUrl =
+          URL.createObjectURL(
+            blob
+          );
+
+
+        await navigator.share({
+          title:
+            "アイカツ！アンコール カード所持状況",
+
+          text:
+            `所持率：${getPercentage(cards)}%`,
+
+          url:
+            blobUrl
+        });
+
+
+        setTimeout(
+          () => {
+
+            URL.revokeObjectURL(
+              blobUrl
+            );
+
+          },
+          5000
+        );
+
+
+        return;
+
+      } catch (shareUrlError) {
+
+        if (
+          shareUrlError &&
+          shareUrlError.name ===
+            "AbortError"
+        ) {
+
+          return;
+        }
+
+
+        console.warn(
+          "URL共有に失敗しました。",
+          shareUrlError
+        );
+      }
+    }
+
+
+    /* =====================================================
+       PC版
+       → 今まで通りPNGダウンロード
     ===================================================== */
 
     const url =
@@ -1962,10 +2180,6 @@ async function saveCollectionImage() {
 
     link.remove();
 
-
-    /*
-      URL解放
-    */
 
     setTimeout(
       () => {
