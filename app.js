@@ -477,12 +477,32 @@ function shareToX() {
     .href = shareUrl;
 }
 
+// ============================================================
+// ヘッダーの高さ取得
+// ============================================================
+
+function updateStickyHeaderHeight() {
+  const header = document.querySelector("header");
+
+  if (!header) return;
+
+  document.documentElement.style.setProperty(
+    "--header-height",
+    `${header.offsetHeight}px`
+  );
+}
+// 画面サイズが変わったらヘッダー高さを再計算
+window.addEventListener("resize", updateStickyHeaderHeight);
 
 // ============================================================
 // 初期化
 // ============================================================
 
 function init() {
+  // ----------------------------------------
+  // ヘッダーの高さ取得
+  // ----------------------------------------
+  updateStickyHeaderHeight();
   // ----------------------------------------
   // localStorage読み込み
   // ----------------------------------------
