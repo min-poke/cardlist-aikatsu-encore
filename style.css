@@ -31,7 +31,6 @@ body {
 
   background-color: #fff7fd;
 
-  /* ダイヤ柄 */
   background-image:
     linear-gradient(58deg, #ffebfa 26%, transparent 26.5%),
     linear-gradient(-58deg, #ffebfa 26%, transparent 26.5%),
@@ -252,10 +251,6 @@ header h1 {
 
   position: sticky;
 
-  /*
-    JavaScriptから実際のヘッダー高さを設定する。
-    初期値はスマホ・PCどちらでも大きくズレないようにする。
-  */
   top: var(--header-height, 110px);
 
   z-index: 90;
@@ -350,19 +345,6 @@ header h1 {
   padding: 10px 12px 2px;
 }
 
-
-/*
-  「表示設定」ではなく、
-
-  拡大  ＋
-
-  ↓
-
-  縮小  −
-
-  と変化するボタン
-*/
-
 .display-toggle {
   display: inline-flex;
 
@@ -413,15 +395,9 @@ header h1 {
   transform: scale(0.94);
 }
 
-
-/* テキスト */
-
 .display-toggle-label {
   line-height: 1;
 }
-
-
-/* ＋ / − */
 
 .display-toggle-icon {
   display: inline-flex;
@@ -451,13 +427,6 @@ header h1 {
     background 0.2s ease;
 }
 
-
-/*
-  拡大状態
-
-  + → −
-*/
-
 .display-toggle.is-expanded .display-toggle-icon {
   background: #e965a3;
 
@@ -472,11 +441,8 @@ header h1 {
 .card-grid {
   display: grid;
 
-  /*
-    PCは10枚固定
-  */
-
-  grid-template-columns: repeat(10, minmax(0, 1fr));
+  grid-template-columns:
+    repeat(10, minmax(0, 1fr));
 
   gap: 10px;
 
@@ -631,6 +597,7 @@ header h1 {
 /* =========================================================
    PC
    横10枚固定
+   表示設定ボタンはPCでは不要
 ========================================================= */
 
 @media (min-width: 769px) {
@@ -638,6 +605,16 @@ header h1 {
   .card-grid {
     grid-template-columns:
       repeat(10, minmax(0, 1fr));
+  }
+
+
+  /*
+    PC版では
+    拡大・縮小ボタン自体を完全に非表示
+  */
+
+  .display-controls {
+    display: none !important;
   }
 
 }
@@ -821,7 +798,6 @@ header h1 {
 
 /* =========================================================
    画像保存用の一時キャンバスなど
-   JavaScript側で使用する要素を画面外に置く場合
 ========================================================= */
 
 #captureArea {
