@@ -1215,155 +1215,31 @@ function loadImage(src) {
 
 
 /* =========================================================
-   画像をグレースケール化する
+   Canvasへカード画像を描画
 ========================================================= */
 
 /*
-  ctx.filter に頼らず、
-  画像そのもののピクセルを
-  グレースケール化する。
+  サイト表示と同じ考え方で描画する。
 
-  iPhone / Androidなどでも
-  未所持カードが確実に
-  グレーになるようにする。
+  通常の縦長カード：
+    元画像をcontain
+
+  横長カード：
+    1. 元画像を145.76%相当に拡大
+    2. 中央を基準に90度回転
+    3. 回転後の実寸比率を維持
+    4. 保存用カード枠の中に収める
+
+  CSS側では、
+
+    width: 145.76%;
+    transform:
+      translate(-50%, -50%)
+      rotate(90deg);
+
+  となっているため、Canvas側でも
+  その倍率を再現する。
 */
-
-function createGrayscaleCanvas(img) {
-
-  const sourceWidth =
-    img.naturalWidth ||
-    img.width;
-
-
-  const sourceHeight =
-    img.naturalHeight ||
-    img.height;
-
-
-  const canvas =
-    document.createElement(
-      "canvas"
-    );
-
-
-  canvas.width =
-    sourceWidth;
-
-
-  canvas.height =
-    sourceHeight;
-
-
-  const ctx =
-    canvas.getContext(
-      "2d",
-      {
-        willReadFrequently: true
-      }
-    );
-
-
-  /*
-    元画像をそのまま描画
-  */
-
-  ctx.drawImage(
-    img,
-    0,
-    0,
-    sourceWidth,
-    sourceHeight
-  );
-
-
-  /*
-    ピクセル取得
-  */
-
-  const imageData =
-    ctx.getImageData(
-      0,
-      0,
-      sourceWidth,
-      sourceHeight
-    );
-
-
-  const data =
-    imageData.data;
-
-
-  /*
-    RGBをグレースケール化
-
-    人間の目の明るさに合わせた
-    輝度計算を使用。
-  */
-
-  for (
-    let i = 0;
-    i < data.length;
-    i += 4
-  ) {
-
-    const r =
-      data[i];
-
-    const g =
-      data[i + 1];
-
-    const b =
-      data[i + 2];
-
-
-    const gray =
-      Math.round(
-        r * 0.299 +
-        g * 0.587 +
-        b * 0.114
-      );
-
-
-    /*
-      元のbrightness(0.7)相当として
-      少し暗くする。
-    */
-
-    const darkGray =
-      Math.round(
-        gray * 0.70
-      );
-
-
-    data[i] =
-      darkGray;
-
-    data[i + 1] =
-      darkGray;
-
-    data[i + 2] =
-      darkGray;
-  }
-
-
-  /*
-    ピクセルを書き戻す
-  */
-
-  ctx.putImageData(
-    imageData,
-    0,
-    0
-  );
-
-
-  return canvas;
-}
-
-
-/* =========================================================
-   Canvasへカード画像を描画
-========================================================= */
 
 async function drawCardToCanvas(
   ctx,
@@ -1423,49 +1299,20 @@ async function drawCardToCanvas(
 
 
     /*
-      -----------------------------------------------------
-      未所持カード
-      -----------------------------------------------------
+      未所持カードは
+      必ずグレースケール＋暗くする。
 
-      Canvasのfilterではなく、
-      実際にグレースケール画像を作る。
-
-      これによりスマホでも
-      カラーに戻ってしまう問題を防ぐ。
+      Canvasではsave/restoreの範囲を
+      画像描画だけに限定する。
     */
 
-    let drawImageSource =
-      img;
+    ctx.save();
 
 
     if (count === 0) {
 
-      try {
-
-        drawImageSource =
-          createGrayscaleCanvas(
-            img
-          );
-
-      } catch (grayscaleError) {
-
-        /*
-          CORSなどでピクセル取得できない場合の
-          フォールバック。
-
-          通常のfilterも試す。
-        */
-
-        console.warn(
-          "グレースケール化に失敗しました。filterを使用します。",
-          grayscaleError
-        );
-
-        ctx.save();
-
-        ctx.filter =
-          "grayscale(100%) brightness(0.7)";
-      }
+      ctx.filter =
+        "grayscale(100%) brightness(0.7)";
     }
 
 
@@ -1476,8 +1323,7 @@ async function drawCardToCanvas(
     if (!landscape) {
 
       /*
-        元画像の比率を絶対に変更せず、
-        枠内に収める。
+        元画像をカード枠にcontain。
       */
 
       const scale =
@@ -1506,7 +1352,7 @@ async function drawCardToCanvas(
 
 
       ctx.drawImage(
-        drawImageSource,
+        img,
         drawX,
         drawY,
         drawWidth,
@@ -1521,56 +1367,106 @@ async function drawCardToCanvas(
     } else {
 
       /*
-        横長画像を90度回転させると、
+        -----------------------------------------------------
+        重要
+        -----------------------------------------------------
 
-        元：
-          imageWidth × imageHeight
+        サイト側CSS：
 
-        回転後：
-          imageHeight × imageWidth
+          width: 145.76%;
+          height: auto;
+          transform:
+            translate(-50%, -50%)
+            rotate(90deg);
 
-        となる。
+        をCanvas上で再現する。
 
-        ここでは必ずこの
-        「回転後サイズ」を基準に
-        スケールを計算する。
+        Canvas上の「回転前の画像幅」は、
+        カード枠の幅の145.76%。
+
+        そのため、
+
+          回転前幅
+          = 保存枠幅 × 1.4576
+
+        とする。
+
+        画像自体のアスペクト比は絶対に変更しない。
       */
 
-      const rotatedWidth =
-        imageHeight;
+      const cssScale =
+        1.4576;
 
 
-      const rotatedHeight =
+      /*
+        CSSと同じく
+        元画像の幅をカード枠幅の
+        145.76%にする。
+      */
+
+      const drawWidthBeforeRotate =
+        width * cssScale;
+
+
+      /*
+        元画像比率を維持して
+        高さを算出。
+      */
+
+      const drawHeightBeforeRotate =
+        drawWidthBeforeRotate *
+        imageHeight /
         imageWidth;
 
 
       /*
-        枠内に完全に収まる倍率。
+        90度回転後の見かけ上のサイズ。
 
-        これで横方向に引き伸ばされない。
+        回転前：
+          幅  = drawWidthBeforeRotate
+          高さ = drawHeightBeforeRotate
+
+        回転後：
+          幅  = drawHeightBeforeRotate
+          高さ = drawWidthBeforeRotate
       */
 
-      const scale =
+      const rotatedWidth =
+        drawHeightBeforeRotate;
+
+
+      const rotatedHeight =
+        drawWidthBeforeRotate;
+
+
+      /*
+        回転後のカードが
+        保存用カード枠からはみ出さないようにする。
+
+        ただし縦横比は絶対に変更しない。
+      */
+
+      const fitScale =
         Math.min(
+          1,
           width / rotatedWidth,
           height / rotatedHeight
         );
 
 
-      const drawWidth =
-        rotatedWidth * scale;
+      const finalWidth =
+        drawWidthBeforeRotate *
+        fitScale;
 
 
-      const drawHeight =
-        rotatedHeight * scale;
+      const finalHeight =
+        drawHeightBeforeRotate *
+        fitScale;
 
 
       /*
-        カード枠の中心へ移動
+        中央を基準に90度回転。
       */
-
-      ctx.save();
-
 
       ctx.translate(
         x + width / 2,
@@ -1578,59 +1474,33 @@ async function drawCardToCanvas(
       );
 
 
-      /*
-        90度回転
-      */
-
       ctx.rotate(
         Math.PI / 2
       );
 
 
       /*
-        回転後のサイズを
-        そのまま中央配置。
+        回転後も元画像の比率を完全維持。
 
-        width / height の比率は
-        一切変更しない。
+        finalWidth / finalHeight は
+        回転前の画像サイズ。
+
+        90度回転するため、
+        Canvas上ではそのまま
+        幅・高さを入れ替えた状態で見える。
       */
 
       ctx.drawImage(
-        drawImageSource,
-        -drawWidth / 2,
-        -drawHeight / 2,
-        drawWidth,
-        drawHeight
+        img,
+        -finalWidth / 2,
+        -finalHeight / 2,
+        finalWidth,
+        finalHeight
       );
-
-
-      ctx.restore();
     }
 
 
-    /*
-      fallbackのfilterを使った場合だけ
-      保存していた状態を戻す。
-    */
-
-    if (
-      count === 0 &&
-      drawImageSource === img
-    ) {
-
-      /*
-        filter fallbackを使用した可能性があるため
-        restoreしておく。
-      */
-
-      try {
-        ctx.restore();
-      } catch (e) {
-        /*
-          saveされていない場合は何もしない。
-        */
-      }
-    }
+    ctx.restore();
 
 
     /* =====================================================
