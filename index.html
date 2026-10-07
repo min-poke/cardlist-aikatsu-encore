@@ -3,35 +3,205 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+
   <title>アイカツ！アンコール カード所持率チェッカー</title>
+
   <link rel="stylesheet" href="style.css">
 </head>
+
 <body>
-  <header>
-    <h1>アイカツ！アンコール<br>カード所持率チェッカー</h1>
-  <div class="actions">
-    <button id="clearBtn" class="btn danger">すべてクリア</button>
-    <a id="shareBtn" class="x-share-btn" href="#" target="_blank" rel="noopener noreferrer">
-      <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor" aria-hidden="true">
-        <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
-      </svg>
-      <span>投稿する</span>
-    </a>
-  </div>
+
+  <!-- ================================
+       ヘッダー
+  ================================= -->
+
+  <header id="siteHeader">
+
+    <h1>
+      アイカツ！アンコール<br>
+      カード所持率チェッカー
+    </h1>
+
+    <div class="actions">
+
+      <button
+        id="clearBtn"
+        class="btn danger"
+        type="button"
+      >
+        すべてクリア
+      </button>
+
+      <!-- 画像保存 -->
+      <button
+        id="saveImageBtn"
+        class="btn image-save"
+        type="button"
+      >
+        画像保存
+      </button>
+
+      <!-- X投稿 -->
+      <a
+        id="shareBtn"
+        class="x-share-btn"
+        href="#"
+        target="_blank"
+        rel="noopener noreferrer"
+      >
+
+        <svg
+          viewBox="0 0 24 24"
+          width="18"
+          height="18"
+          fill="currentColor"
+          aria-hidden="true"
+        >
+          <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
+        </svg>
+
+        <span>投稿する</span>
+
+      </a>
+
+    </div>
+
   </header>
 
+
+  <!-- ================================
+       シリーズタブ
+  ================================= -->
+
   <nav class="tabs">
-    <button class="tab active" data-tab="all">すべて</button>
-    <button class="tab" data-tab="1">1弾</button>
-    <button class="tab" data-tab="promo">プロモーション</button>
+
+    <button
+      class="tab active"
+      data-tab="all"
+      type="button"
+    >
+      すべて
+    </button>
+
+    <button
+      class="tab"
+      data-tab="1"
+      type="button"
+    >
+      1弾
+    </button>
+
+    <button
+      class="tab"
+      data-tab="promo"
+      type="button"
+    >
+      プロモーション
+    </button>
+
   </nav>
 
-<div class="stats">
-  所持：<span id="ownedCount">0</span> / <span id="totalCount">0</span> 枚
-  （<span id="ownedPercentage">0</span>%）
-</div>
 
-  <main id="cardGrid" class="card-grid"></main>
+  <!-- ================================
+       所持率
+  ================================= -->
+
+  <div class="stats">
+
+    所持：
+    <span id="ownedCount">0</span>
+    /
+    <span id="totalCount">0</span>
+    枚
+
+    （
+    <span id="ownedPercentage">0</span>
+    %
+    ）
+
+  </div>
+
+
+  <!-- ================================
+       表示設定
+  ================================= -->
+
+  <section class="display-settings">
+
+    <button
+      id="gridToggleBtn"
+      class="grid-toggle-btn"
+      type="button"
+      aria-expanded="false"
+      aria-controls="gridSettings"
+    >
+
+      <span class="grid-toggle-label">
+        表示設定
+      </span>
+
+      <span
+        id="gridToggleIcon"
+        class="grid-toggle-icon"
+        aria-hidden="true"
+      >
+        ＋
+      </span>
+
+    </button>
+
+
+    <div
+      id="gridSettings"
+      class="grid-settings"
+    >
+
+      <div class="grid-settings-inner">
+
+        <div class="grid-settings-title">
+          カードの表示枚数
+        </div>
+
+        <div class="grid-size-buttons">
+
+          <button
+            class="grid-size-btn active"
+            data-columns="3"
+            type="button"
+          >
+            横3枚
+          </button>
+
+          <button
+            class="grid-size-btn"
+            data-columns="6"
+            type="button"
+          >
+            横6枚
+          </button>
+
+        </div>
+
+      </div>
+
+    </div>
+
+  </section>
+
+
+  <!-- ================================
+       カード一覧
+  ================================= -->
+
+  <main
+    id="cardGrid"
+    class="card-grid columns-3"
+  ></main>
+
+
+  <!-- ================================
+       JavaScript
+  ================================= -->
 
   <script src="cards.js"></script>
   <script src="app.js"></script>
