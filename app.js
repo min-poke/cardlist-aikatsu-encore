@@ -1,37 +1,6 @@
 const STORAGE_KEY = "aikatsu_encore_owned";
 let owned = {}; // { cardId: number (0-5) }
 
-// 初期化
-function init() {
-  loadOwned();
-  applyHash();          // URLハッシュから復元
-  render();
-  updateStats();
-
-  // タブ切り替え
-  document.querySelectorAll(".tab").forEach(tab => {
-    tab.addEventListener("click", () => {
-      document.querySelectorAll(".tab").forEach(t => t.classList.remove("active"));
-      tab.classList.add("active");
-      render();
-    });
-  });
-
-  // クリア
-  document.getElementById("clearBtn").addEventListener("click", () => {
-    if (confirm("すべての所持数を0に戻しますか？")) {
-      owned = {};
-      saveOwned();
-      render();
-      updateStats();
-      history.replaceState(null, "", location.pathname);
-    }
-  });
-
-  // X投稿
-  document.getElementById("shareBtn").addEventListener("click", shareToX);
-}
-
 // 所持データ読み込み
 function loadOwned() {
   try {
@@ -63,10 +32,34 @@ function render() {
     item.className = `card-item ${count === 0 ? "unowned" : ""}`;
     item.dataset.id = card.id;
 
-    item.innerHTML = `
-      <img src="${card.image}" alt="${card.name}" loading="lazy">
-      <div class="badge ${count === 0 ? "hidden" : ""}">${count >= 5 ? "5+" : count}</div>
-    `;
+    const img = document.createElement("img");
+    img.src = card.image;
+    img.alt = card.name;
+    img.loading = "lazy";
+
+    // 横長判定（再回転防止）
+    img.onload = function() {
+      if (!this.dataset.checked) {
+        this.dataset.checked = "true";
+        if (this.naturalWidth > this.naturalHeight) {
+          this.classList.add("rotate-90");
+        }
+      }
+    };
+
+    // キャッシュ済み画像対応
+    if (img.complete && img.naturalWidth > 0) {
+      if (img.naturalWidth > img.naturalHeight) {
+        img.classList.add("rotate-90");
+      }
+    }
+
+    const badge = document.createElement("div");
+    badge.className = `badge ${count === 0 ? "hidden" : ""}`;
+    badge.textContent = count >= 5 ? "5+" : count;
+
+    item.appendChild(img);
+    item.appendChild(badge);
 
     item.addEventListener("click", () => {
       let next = (owned[card.id] || 0) + 1;
@@ -76,6 +69,7 @@ function render() {
       saveOwned();
       render();
       updateStats();
+      shareToX(); // 所持数変更後にリンク更新
     });
 
     grid.appendChild(item);
@@ -90,16 +84,10 @@ function updateStats() {
 }
 
 // ========== 共有用圧縮 ==========
-// 所持状態を短く圧縮してハッシュにする
 function encodeState() {
-  // カードID順に所持数を並べる（0-5）
   const ids = CARDS.map(c => c.id);
   const counts = ids.map(id => owned[id] || 0);
-  
-  // 6進数っぽく圧縮（0-5なので1文字で表現可能）
-  // さらにBase64風に短縮
-  let str = counts.join("");
-  // 簡易圧縮：連続する0を短縮などしても良いが、まずはシンプルに
+  const str = counts.join("");
   return btoa(str).replace(/=/g, "").replace(/\+/g, "-").replace(/\//g, "_");
 }
 
@@ -127,13 +115,56 @@ function applyHash() {
   }
 }
 
-// X投稿
+// X投稿リンクを更新
 function shareToX() {
   const state = encodeState();
-  const url = location.origin + location.pathname + "#" + state;
-  const text = `アイカツ！アンコール カード所持状況\n${url}\n#アイカツ #アイカツアンコール`;
-  const shareUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}`;
-  window.open(shareUrl, "_blank");
+  const url = location.origin + location.pathname + (location.search || "") + "#" + state;
+  const text = "アイカツ！アンコール カード所持状況";
+  const hashtags = "アイカツ,アイカツアンコール";
+
+  const shareUrl =
+    "https://twitter.com/intent/tweet" +
+    "?text=" + encodeURIComponent(text) +
+    "&url=" + encodeURIComponent(url) +
+    "&hashtags=" + encodeURIComponent(hashtags);
+
+  const btn = document.getElementById("shareBtn");
+  if (btn) btn.href = shareUrl;
+}
+
+// 初期化（1つだけ）
+function init() {
+  loadOwned();
+  applyHash();
+  render();
+  updateStats();
+  shareToX();
+
+  // タブ切り替え
+  document.querySelectorAll(".tab").forEach(tab => {
+    tab.addEventListener("click", () => {
+      document.querySelectorAll(".tab").forEach(t => t.classList.remove("active"));
+      tab.classList.add("active");
+      render();
+    });
+  });
+
+  // クリア
+  document.getElementById("clearBtn").addEventListener("click", () => {
+    if (confirm("すべての所持数を0に戻しますか？")) {
+      owned = {};
+      saveOwned();
+      render();
+      updateStats();
+      history.replaceState(null, "", location.pathname + location.search);
+      shareToX();
+    }
+  });
+
+  // 投稿ボタンクリック時に最新状態でリンク更新
+  document.getElementById("shareBtn").addEventListener("click", () => {
+    shareToX();
+  });
 }
 
 // 起動
