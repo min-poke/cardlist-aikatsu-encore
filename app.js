@@ -39,7 +39,7 @@ function render() {
   );
 
   list.forEach(card => {
-    const count = owned[card.id] || 0;
+    const count = Math.min(owned[card.id] || 0, 3);
 
     const item = document.createElement("div");
     item.className = `card-item ${count === 0 ? "unowned" : ""}`;
@@ -70,7 +70,6 @@ function render() {
 
     item.append(img, badge);
 
-    // クリックで
     // 0 → 1 → 2 → 3 → 0
     item.addEventListener("click", () => {
       const next = ((owned[card.id] || 0) + 1) % 4;
@@ -99,22 +98,130 @@ function updateStats() {
   document.getElementById("ownedPercentage").textContent = getPercentage();
 }
 
-// ==================== 共有 ====================
+// ==================== Base64URL ====================
+
+// Uint8Array → Base64URL
+function bytesToBase64Url(bytes) {
+  let binary = "";
+
+  for (const byte of bytes) {
+    binary += String.fromCharCode(byte);
+  }
+
+  return btoa(binary)
+    .replace(/\+/g, "-")
+    .replace(/\//g, "_")
+    .replace(/=+$/, "");
+}
+
+// Base64URL → Uint8Array
+function base64UrlToBytes(str) {
+  const base64 = str
+    .replace(/-/g, "+")
+    .replace(/_/g, "/");
+
+  const padded = base64 + "=".repeat((4 - base64.length % 4) % 4);
+
+  const binary = atob(padded);
+
+  const bytes = new Uint8Array(binary.length);
+
+  for (let i = 0; i < binary.length; i++) {
+    bytes[i] = binary.charCodeAt(i);
+  }
+
+  return bytes;
+}
+
+// ==================== ハッシュ圧縮 ====================
+
+// 0〜3を2bitずつ詰める
+//
+// 例:
+// 0 = 00
+// 1 = 01
+// 2 = 10
+// 3 = 11
+//
+// 4枚なら
+// 00 01 10 11
+// ↓
+// 00011011
+// ↓
+// 1 byte
+//
+// さらにBase64URL化する。
 
 function encodeState() {
-  const counts = CARDS.map(card => {
-    // 念のため0〜3に制限
-    return Math.min(owned[card.id] || 0, 3);
-  });
+  const counts = CARDS.map(card =>
+    Math.min(owned[card.id] || 0, 3)
+  );
 
-  return btoa(counts.join(""))
-    .replace(/=/g, "")
-    .replace(/\+/g, "-")
-    .replace(/\//g, "_");
+  // 必要なバイト数
+  const byteLength = Math.ceil(counts.length / 4);
+
+  const bytes = new Uint8Array(byteLength);
+
+  for (let i = 0; i < counts.length; i++) {
+    const count = counts[i];
+
+    // 1byteに4カード分を詰める
+    //
+    // 1枚目: bit 7-6
+    // 2枚目: bit 5-4
+    // 3枚目: bit 3-2
+    // 4枚目: bit 1-0
+    //
+    const byteIndex = Math.floor(i / 4);
+    const shift = 6 - (i % 4) * 2;
+
+    bytes[byteIndex] |= count << shift;
+  }
+
+  // 新形式であることを示す "v2" を先頭につける
+  return "v2" + bytesToBase64Url(bytes);
 }
+
+// ==================== ハッシュ復元 ====================
 
 function decodeState(hash) {
   try {
+    // ==========================
+    // 新形式
+    // ==========================
+    if (hash.startsWith("v2")) {
+      const encoded = hash.slice(2);
+      const bytes = base64UrlToBytes(encoded);
+
+      return CARDS.reduce((result, card, i) => {
+        const byteIndex = Math.floor(i / 4);
+        const shift = 6 - (i % 4) * 2;
+
+        if (byteIndex >= bytes.length) {
+          return result;
+        }
+
+        const count =
+          (bytes[byteIndex] >> shift) & 0b11;
+
+        if (count > 0) {
+          result[card.id] = count;
+        }
+
+        return result;
+      }, {});
+    }
+
+    // ==========================
+    // 旧形式
+    // ==========================
+    //
+    // 以前の形式:
+    // btoa(counts.join(""))
+    //
+    // 旧ハッシュも読み込めるようにする。
+    //
+
     const str = atob(
       hash
         .replace(/-/g, "+")
@@ -122,7 +229,10 @@ function decodeState(hash) {
     );
 
     return CARDS.reduce((result, card, i) => {
-      const count = Math.min(Number(str[i] || 0), 3);
+      const count = Math.min(
+        Number(str[i] || 0),
+        3
+      );
 
       if (count > 0) {
         result[card.id] = count;
@@ -130,10 +240,13 @@ function decodeState(hash) {
 
       return result;
     }, {});
+
   } catch {
     return null;
   }
 }
+
+// ==================== ハッシュ適用 ====================
 
 function applyHash() {
   const hash = location.hash.slice(1);
@@ -147,6 +260,8 @@ function applyHash() {
     saveOwned();
   }
 }
+
+// ==================== X共有 ====================
 
 function shareToX() {
   const state = encodeState();
