@@ -150,7 +150,7 @@ function shareToX() {
     "https://twitter.com/intent/tweet" +
     "?text=" + encodeURIComponent(text) +
     "&url=" + encodeURIComponent(url) +
-    "&hashtags=" + encodeURIComponent("アイカツ,アイカツアンコール");
+    "&hashtags=" + encodeURIComponent("アイカツ,アイカツアンコール,aikatsu,aikatsuencore");
 
   document.getElementById("shareBtn").href = shareUrl;
 }
