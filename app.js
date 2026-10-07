@@ -1230,15 +1230,12 @@ function loadImage(src) {
     3. 回転後の実寸比率を維持
     4. 保存用カード枠の中に収める
 
-  CSS側では、
+  未所持カード：
+    Canvasのfilterには頼らず、
+    描画後のピクセルを直接グレースケール化する。
 
-    width: 145.76%;
-    transform:
-      translate(-50%, -50%)
-      rotate(90deg);
-
-  となっているため、Canvas側でも
-  その倍率を再現する。
+    これによりPC・スマホで
+    保存画像の色が変わらない。
 */
 
 async function drawCardToCanvas(
@@ -1299,41 +1296,15 @@ async function drawCardToCanvas(
 
 
     /*
-      未所持カードは
-      必ずグレースケール＋暗くする。
+      Canvasのfilterには頼らない。
 
-      Canvasではsave/restoreの範囲を
-      画像描画だけに限定する。
+      特にスマホのSafari等では
+      ctx.filter の挙動が不安定な場合があるため、
+      画像を描画した後にピクセルそのものを
+      グレースケール化する。
     */
 
-     ctx.save();
-
-     /*
-       未所持カードは
-       保存画像でも確実にグレー表示にする。
-       
-       CanvasではCSSの
-       .card-item.unowned img
-       は反映されないため、
-       Canvas側で直接フィルターを設定する。
-     */
-     if (count === 0) {
-
-       ctx.filter =
-         "grayscale(100%) brightness(0.7)";
-
-     } else {
-
-       ctx.filter =
-         "none";
-     }
-
-
-    if (count === 0) {
-
-      ctx.filter =
-        "grayscale(100%) brightness(0.7)";
-    }
+    ctx.filter = "none";
 
 
     /* =====================================================
@@ -1387,31 +1358,12 @@ async function drawCardToCanvas(
     } else {
 
       /*
-        -----------------------------------------------------
-        重要
-        -----------------------------------------------------
-
-        サイト側CSS：
+        サイト側CSSと同じ倍率。
 
           width: 145.76%;
-          height: auto;
           transform:
             translate(-50%, -50%)
             rotate(90deg);
-
-        をCanvas上で再現する。
-
-        Canvas上の「回転前の画像幅」は、
-        カード枠の幅の145.76%。
-
-        そのため、
-
-          回転前幅
-          = 保存枠幅 × 1.4576
-
-        とする。
-
-        画像自体のアスペクト比は絶対に変更しない。
       */
 
       const cssScale =
@@ -1419,9 +1371,7 @@ async function drawCardToCanvas(
 
 
       /*
-        CSSと同じく
-        元画像の幅をカード枠幅の
-        145.76%にする。
+        回転前の画像幅
       */
 
       const drawWidthBeforeRotate =
@@ -1429,8 +1379,8 @@ async function drawCardToCanvas(
 
 
       /*
-        元画像比率を維持して
-        高さを算出。
+        元画像の比率を完全維持して
+        回転前の高さを算出。
       */
 
       const drawHeightBeforeRotate =
@@ -1440,15 +1390,7 @@ async function drawCardToCanvas(
 
 
       /*
-        90度回転後の見かけ上のサイズ。
-
-        回転前：
-          幅  = drawWidthBeforeRotate
-          高さ = drawHeightBeforeRotate
-
-        回転後：
-          幅  = drawHeightBeforeRotate
-          高さ = drawWidthBeforeRotate
+        90度回転後の見かけ上のサイズ
       */
 
       const rotatedWidth =
@@ -1460,10 +1402,8 @@ async function drawCardToCanvas(
 
 
       /*
-        回転後のカードが
-        保存用カード枠からはみ出さないようにする。
-
-        ただし縦横比は絶対に変更しない。
+        保存用カード枠に収める。
+        比率は変更しない。
       */
 
       const fitScale =
@@ -1485,8 +1425,11 @@ async function drawCardToCanvas(
 
 
       /*
-        中央を基準に90度回転。
+        中央を基準に90度回転
       */
+
+      ctx.save();
+
 
       ctx.translate(
         x + width / 2,
@@ -1500,14 +1443,7 @@ async function drawCardToCanvas(
 
 
       /*
-        回転後も元画像の比率を完全維持。
-
-        finalWidth / finalHeight は
-        回転前の画像サイズ。
-
-        90度回転するため、
-        Canvas上ではそのまま
-        幅・高さを入れ替えた状態で見える。
+        元画像の比率を維持したまま描画
       */
 
       ctx.drawImage(
@@ -1517,12 +1453,107 @@ async function drawCardToCanvas(
         finalWidth,
         finalHeight
       );
+
+
+      ctx.restore();
     }
 
 
-     ctx.restore();
+    /* =====================================================
+       未所持カードを直接グレースケール化
+    ===================================================== */
 
-     ctx.filter = "none";
+    if (count === 0) {
+
+      /*
+        Canvasのctx.filterではなく、
+        実際に描画されたピクセルを取得して
+        RGB値を書き換える。
+
+        これならスマホでも確実に
+        保存画像をグレーにできる。
+      */
+
+      const imageData =
+        ctx.getImageData(
+          Math.round(x),
+          Math.round(y),
+          Math.round(width),
+          Math.round(height)
+        );
+
+
+      const data =
+        imageData.data;
+
+
+      /*
+        CSSの
+
+          grayscale(100%)
+          brightness(0.7)
+
+        に近い見た目にする。
+
+        人間の視覚に合わせた輝度計算：
+          R 21.26%
+          G 71.52%
+          B  7.22%
+      */
+
+      for (
+        let i = 0;
+        i < data.length;
+        i += 4
+      ) {
+
+        const gray =
+          (
+            data[i] * 0.2126 +
+            data[i + 1] * 0.7152 +
+            data[i + 2] * 0.0722
+          );
+
+
+        const darkGray =
+          gray * 0.7;
+
+
+        data[i] =
+          darkGray;
+
+
+        data[i + 1] =
+          darkGray;
+
+
+        data[i + 2] =
+          darkGray;
+
+        /*
+          Alpha値(data[i + 3])は変更しない。
+        */
+      }
+
+
+      /*
+        グレースケール化した画像を
+        元の位置へ戻す。
+      */
+
+      ctx.putImageData(
+        imageData,
+        Math.round(x),
+        Math.round(y)
+      );
+    }
+
+
+    /*
+      念のためCanvasのfilterを初期状態に戻す。
+    */
+
+    ctx.filter = "none";
 
 
     /* =====================================================
@@ -1666,7 +1697,6 @@ async function drawCardToCanvas(
     );
   }
 }
-
 
 /* =========================================================
    所持状況を画像として保存
