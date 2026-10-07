@@ -79,8 +79,15 @@ function render() {
 function updateStats() {
   const total = CARDS.length;
   const ownedNum = Object.keys(owned).filter(id => owned[id] > 0).length;
+
+  // 所持率を計算（小数第1位まで）
+  const percentage = total > 0
+    ? (ownedNum / total * 100).toFixed(1)
+    : "0.0";
+
   document.getElementById("totalCount").textContent = total;
   document.getElementById("ownedCount").textContent = ownedNum;
+  document.getElementById("ownedPercentage").textContent = percentage;
 }
 
 // ========== 共有用圧縮 ==========
