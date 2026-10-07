@@ -17,16 +17,16 @@ let owned = {};
    表示設定
 ========================================================= */
 
-// false = 通常
+// false = 縮小
 // true  = 拡大
 //
 // スマホの場合
-// 通常 → 横3枚
-// 拡大 → 横6枚
+// 拡大（true）  → 横3枚
+// 縮小（false） → 横6枚
 //
 // PCでは常に横10枚。
 
-let isExpanded = false;
+let isExpanded = true;
 
 
 /* =========================================================
@@ -409,21 +409,24 @@ function render() {
 
 
   /*
-    拡大状態
-  */
+  拡大状態
 
-  if (isExpanded) {
+  true  → 横3枚
+  false → 横6枚
+*/
 
-    grid.classList.add(
-      "expanded"
-    );
+if (isExpanded) {
 
-  } else {
+  grid.classList.remove(
+    "expanded"
+  );
 
-    grid.classList.remove(
-      "expanded"
-    );
-  }
+} else {
+
+  grid.classList.add(
+    "expanded"
+  );
+}
 
 
   /*
@@ -1046,19 +1049,24 @@ function updateDisplayToggle() {
 
 
   /*
-    ボタンには
+    現在の表示状態に応じて、
     「押したらどうなるか」を表示する。
 
-    通常状態
-      → 押すと拡大
-      → 「拡大 ＋」
-
-    拡大状態
-      → 押すと縮小
+    3枚表示（大きい・拡大状態）
+      → 押すと6枚表示になる
       → 「縮小 −」
+
+    6枚表示（小さい・縮小状態）
+      → 押すと3枚表示になる
+      → 「拡大 ＋」
   */
 
   if (isExpanded) {
+
+    /*
+      現在：3枚表示
+      → 次は縮小
+    */
 
     if (label) {
 
@@ -1086,6 +1094,11 @@ function updateDisplayToggle() {
 
 
   } else {
+
+    /*
+      現在：6枚表示
+      → 次は拡大
+    */
 
     if (label) {
 
