@@ -1520,7 +1520,9 @@ async function drawCardToCanvas(
     }
 
 
-    ctx.restore();
+     ctx.restore();
+
+     ctx.filter = "none";
 
 
     /* =====================================================
