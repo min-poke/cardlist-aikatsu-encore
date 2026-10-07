@@ -1012,11 +1012,11 @@ function shareToX() {
   スマホのみ使用。
 
   通常状態
-    → 「縮小」表示
+    → 「拡大」表示
     → ＋
 
   拡大状態
-    → 「拡大」表示
+    → 「縮小」表示
     → −
 */
 
@@ -1047,10 +1047,15 @@ function updateDisplayToggle() {
 
   if (isExpanded) {
 
+    /*
+      現在は拡大状態なので
+      「縮小」ボタンにする
+    */
+
     if (label) {
 
       label.textContent =
-        "拡大";
+        "縮小";
     }
 
 
@@ -1074,10 +1079,15 @@ function updateDisplayToggle() {
 
   } else {
 
+    /*
+      現在は通常状態なので
+      「拡大」ボタンにする
+    */
+
     if (label) {
 
       label.textContent =
-        "縮小";
+        "拡大";
     }
 
 
