@@ -347,20 +347,27 @@ header h1 {
   padding: 10px 12px 2px;
 }
 
+
 /* =========================================================
-   パラレル表示切り替えボタン
+   表示設定ボタン共通
+   パラレル・拡大縮小を完全に同じサイズにする
 ========================================================= */
 
-.parallel-toggle {
+.parallel-toggle,
+.display-toggle {
   display: inline-flex;
 
   align-items: center;
 
   justify-content: center;
 
-  min-width: 120px;
+  width: 140px;
 
-  padding: 6px 13px;
+  min-width: 140px;
+
+  height: 34px;
+
+  padding: 0 13px;
 
   border: 1px solid #f2a7c9;
 
@@ -376,6 +383,8 @@ header h1 {
 
   font-weight: 700;
 
+  line-height: 1;
+
   cursor: pointer;
 
   box-shadow:
@@ -386,10 +395,21 @@ header h1 {
     color 0.2s,
     transform 0.15s,
     box-shadow 0.2s;
+
+  white-space: nowrap;
+
+  appearance: none;
+
+  -webkit-appearance: none;
 }
 
 
-.parallel-toggle:hover {
+/* =========================================================
+   ボタン共通ホバー
+========================================================= */
+
+.parallel-toggle:hover,
+.display-toggle:hover {
   background: #fff1f8;
 
   box-shadow:
@@ -397,18 +417,19 @@ header h1 {
 }
 
 
-.parallel-toggle:active {
+/* =========================================================
+   ボタン共通クリック
+========================================================= */
+
+.parallel-toggle:active,
+.display-toggle:active {
   transform: scale(0.94);
 }
 
 
-/*
-  パラレル表示中
-
-  次の操作が
-  「パラレルを非表示」
-  になる状態
-*/
+/* =========================================================
+   パラレル表示中
+========================================================= */
 
 .parallel-toggle.is-active {
   background: #f783b6;
@@ -421,66 +442,36 @@ header h1 {
     0 2px 5px rgba(200, 90, 140, 0.25);
 }
 
-
 .parallel-toggle.is-active:hover {
   background: #e965a3;
 
   border-color: #e965a3;
 }
 
+
+/* =========================================================
+   拡大縮小ボタン
+========================================================= */
+
 .display-toggle {
-  display: inline-flex;
-
-  align-items: center;
-
-  justify-content: center;
-
   gap: 8px;
-
-  min-width: 82px;
-
-  padding: 6px 13px;
-
-  border: 1px solid #f2a7c9;
-
-  border-radius: 999px;
-
-  background: rgba(255, 255, 255, 0.95);
-
-  color: #e56b9f;
-
-  font-family: inherit;
-
-  font-size: 0.8rem;
-
-  font-weight: 700;
-
-  cursor: pointer;
-
-  box-shadow:
-    0 1px 4px rgba(200, 90, 140, 0.12);
-
-  transition:
-    background 0.2s,
-    color 0.2s,
-    transform 0.15s,
-    box-shadow 0.2s;
 }
 
-.display-toggle:hover {
-  background: #fff1f8;
 
-  box-shadow:
-    0 2px 6px rgba(200, 90, 140, 0.18);
-}
-
-.display-toggle:active {
-  transform: scale(0.94);
-}
+/* =========================================================
+   拡大縮小ボタンの文字
+========================================================= */
 
 .display-toggle-label {
+  display: inline-block;
+
   line-height: 1;
 }
+
+
+/* =========================================================
+   拡大縮小ボタンのアイコン
+========================================================= */
 
 .display-toggle-icon {
   display: inline-flex;
@@ -488,6 +479,8 @@ header h1 {
   align-items: center;
 
   justify-content: center;
+
+  flex-shrink: 0;
 
   width: 18px;
 
@@ -691,14 +684,9 @@ header h1 {
   }
 
 
-  /*
-    PCでは拡大縮小ボタンを表示しない
-  */
-
   #displayToggleBtn {
     display: none;
   }
-
 }
 
 
@@ -718,7 +706,6 @@ header h1 {
 
     padding-right: 12px;
   }
-
 }
 
 
@@ -775,6 +762,26 @@ header h1 {
     padding-top: 8px;
 
     padding-bottom: 2px;
+
+    gap: 6px;
+  }
+
+
+  /* =======================================================
+     スマホでも2つのボタンを完全に同じサイズ
+  ======================================================= */
+
+  .parallel-toggle,
+  .display-toggle {
+    width: 140px;
+
+    min-width: 140px;
+
+    height: 34px;
+
+    padding: 0 10px;
+
+    font-size: 0.76rem;
   }
 
 
@@ -803,7 +810,6 @@ header h1 {
   */
 
   .card-grid.expanded {
-
     grid-template-columns:
       repeat(6, minmax(0, 1fr));
 
@@ -835,7 +841,6 @@ header h1 {
 
     padding: 0 4px;
   }
-
 }
 
 
@@ -858,6 +863,34 @@ header h1 {
   }
 
 
+  .display-controls {
+    gap: 5px;
+  }
+
+
+  .parallel-toggle,
+  .display-toggle {
+    width: 135px;
+
+    min-width: 135px;
+
+    height: 34px;
+
+    padding: 0 8px;
+
+    font-size: 0.73rem;
+  }
+
+
+  .display-toggle-icon {
+    width: 18px;
+
+    height: 18px;
+
+    font-size: 14px;
+  }
+
+
   .card-grid {
     gap: 6px;
 
@@ -874,7 +907,6 @@ header h1 {
 
     padding-right: 3px;
   }
-
 }
 
 
@@ -923,7 +955,6 @@ header h1 {
   100% {
     transform: scale(1);
   }
-
 }
 
 .display-toggle.changed {
@@ -948,5 +979,4 @@ header h1 {
 
     animation-iteration-count: 1 !important;
   }
-
 }
