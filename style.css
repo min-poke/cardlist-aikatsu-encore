@@ -377,7 +377,8 @@ header h1 {
 ========================================================= */
 
 .parallel-toggle,
-.display-toggle {
+.display-toggle,
+.owned-only-toggle {
   display: inline-flex;
 
   align-items: center;
@@ -447,6 +448,28 @@ header h1 {
 .parallel-toggle:active,
 .display-toggle:active {
   transform: scale(0.94);
+}
+
+
+/* =========================================================
+   所持中のみ表示
+========================================================= */
+
+.owned-only-toggle.is-active {
+    background: #f783b6;
+
+    border-color: #f783b6;
+
+    color: #fff;
+
+    box-shadow:
+        0 2px 5px rgba(200, 90, 140, 0.25);
+}
+
+.owned-only-toggle.is-active:hover {
+    background: #e965a3;
+
+    border-color: #e965a3;
 }
 
 
@@ -866,6 +889,51 @@ header h1 {
   }
 }
 
+/* =========================================================
+   スマホ：操作ボタンをコンパクトにする
+========================================================= */
+
+@media (max-width: 600px) {
+
+  #displayToggleBtn,
+  #parallelToggleBtn,
+  #ownedOnlyToggleBtn {
+
+    padding-left: 8px;
+    padding-right: 8px;
+
+    font-size: 13px;
+
+    white-space: nowrap;
+  }
+
+
+  /*
+    拡大・縮小ボタン
+  */
+
+  #displayToggleBtn {
+    min-width: 72px;
+  }
+
+
+  /*
+    パラレル表示ボタン
+  */
+
+  #parallelToggleBtn {
+    min-width: 110px;
+  }
+
+
+  /*
+    所持のみ表示ボタン
+  */
+
+  #ownedOnlyToggleBtn {
+    min-width: 100px;
+  }
+}
 
 /* =========================================================
    小さいスマホ

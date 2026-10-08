@@ -43,6 +43,18 @@ let showParallel = false;
 
 
 /* =========================================================
+   所持カードのみ表示設定
+========================================================= */
+
+// false = すべて表示
+// true  = 所持カードのみ表示
+//
+// 初回アクセス時は必ず false。
+
+let showOwnedOnly = false;
+
+
+/* =========================================================
    所持データ読み込み
 ========================================================= */
 
@@ -301,6 +313,24 @@ function getCardsForTab(tab) {
 
   if (!showParallel) {
 
+    /*
+      所持のみ表示
+
+      パラレル非表示時は、
+      通常カードの中から
+      所持しているカードだけを表示。
+    */
+
+    if (showOwnedOnly) {
+
+      return cards.filter(card => {
+
+        return getCardCount(card.id) > 0;
+
+      });
+    }
+
+
     return cards;
   }
 
@@ -317,8 +347,15 @@ function getCardsForTab(tab) {
 
   cards.forEach(card => {
 
-    result.push(card);
+    /*
+      所持のみ表示がONの場合、
 
+      通常カードが未所持
+      かつ
+      パラレルも未所持
+
+      なら両方表示しない。
+    */
 
     const parallelCard =
       CARDS.find(candidate => {
@@ -332,11 +369,60 @@ function getCardsForTab(tab) {
       });
 
 
+    if (showOwnedOnly) {
+
+      const normalOwned =
+        getCardCount(card.id) > 0;
+
+
+      const parallelOwned =
+        parallelCard
+          ? getCardCount(
+              parallelCard.id
+            ) > 0
+          : false;
+
+
+      /*
+        通常・パラレルのどちらかを
+        所持していれば表示する。
+      */
+
+      if (!normalOwned && !parallelOwned) {
+        return;
+      }
+    }
+
+
+    /*
+      通常カード
+    */
+
+    result.push(card);
+
+
+    /*
+      パラレルカード
+    */
+
     if (parallelCard) {
 
-      result.push(
-        parallelCard
-      );
+      /*
+        所持のみ表示ONの場合、
+        未所持パラレルは表示しない。
+      */
+
+      if (
+        !showOwnedOnly ||
+        getCardCount(
+          parallelCard.id
+        ) > 0
+      ) {
+
+        result.push(
+          parallelCard
+        );
+      }
     }
   });
 
@@ -571,6 +657,8 @@ function setupTabs() {
 
           updateParallelToggle();
 
+          updateOwnedOnlyToggle();
+
           shareToX();
         }
       );
@@ -799,6 +887,8 @@ function render() {
         render();
 
         updateStats();
+
+        updateOwnedOnlyToggle();
 
         shareToX();
       }
@@ -1439,7 +1529,7 @@ function updateParallelToggle() {
     */
 
     button.textContent =
-      "パラレルを非表示";
+      "パラレル非表示";
 
 
     button.classList.add(
@@ -1461,7 +1551,7 @@ function updateParallelToggle() {
     */
 
     button.textContent =
-      "パラレルを表示";
+      "パラレル表示";
 
 
     button.classList.remove(
@@ -1504,6 +1594,8 @@ function setupParallelToggle() {
 
       updateParallelToggle();
 
+      updateOwnedOnlyToggle();
+
       shareToX();
     }
   );
@@ -1517,6 +1609,127 @@ function setupParallelToggle() {
   */
 
   updateParallelToggle();
+}
+
+
+/* =========================================================
+   所持のみ表示切り替え
+========================================================= */
+
+/*
+  false
+    → すべて表示
+
+  true
+    → 所持しているカードだけ表示
+
+  ボタンは、
+
+    OFF → 「所持のみ表示」
+    ON  → 「すべて表示」
+
+  とする。
+*/
+
+function updateOwnedOnlyToggle() {
+
+  const button =
+    document.getElementById(
+      "ownedOnlyToggleBtn"
+    );
+
+
+  if (!button) {
+    return;
+  }
+
+
+  if (showOwnedOnly) {
+
+    /*
+      現在「所持のみ表示」中
+      → 次の操作で全カード表示
+    */
+
+    button.textContent =
+      "すべて表示";
+
+
+    button.classList.add(
+      "is-active"
+    );
+
+
+    button.setAttribute(
+      "aria-pressed",
+      "true"
+    );
+
+
+  } else {
+
+    /*
+      現在すべて表示中
+      → 次の操作で所持カードのみ表示
+    */
+
+    button.textContent =
+      "所持のみ表示";
+
+
+    button.classList.remove(
+      "is-active"
+    );
+
+
+    button.setAttribute(
+      "aria-pressed",
+      "false"
+    );
+  }
+}
+
+
+function setupOwnedOnlyToggle() {
+
+  const button =
+    document.getElementById(
+      "ownedOnlyToggleBtn"
+    );
+
+
+  if (!button) {
+    return;
+  }
+
+
+  button.addEventListener(
+    "click",
+    () => {
+
+      showOwnedOnly =
+        !showOwnedOnly;
+
+
+      render();
+
+      updateStats();
+
+      updateOwnedOnlyToggle();
+
+      shareToX();
+    }
+  );
+
+
+  /*
+    初期状態
+
+    すべて表示
+    → 「所持のみ表示」
+  */
+
+  updateOwnedOnlyToggle();
 }
 
 
@@ -2607,6 +2820,8 @@ function setupClearButton() {
 
       updateStats();
 
+      updateOwnedOnlyToggle();
+
       shareToX();
 
 
@@ -2642,7 +2857,9 @@ function init() {
     URL共有データを優先
 
     showParallelは変更しない。
-    初期値falseのまま。
+    showOwnedOnlyも変更しない。
+
+    どちらも初期値falseのまま。
   */
 
   applyHash();
@@ -2688,6 +2905,13 @@ function init() {
   */
 
   setupParallelToggle();
+
+
+  /*
+    所持のみ表示
+  */
+
+  setupOwnedOnlyToggle();
 
 
   /*
