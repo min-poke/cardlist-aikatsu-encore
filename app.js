@@ -1893,7 +1893,7 @@ async function drawCardToCanvas(
 function calculateSaveColumns(cardCount) {
 
   const minColumns =
-    6;
+    4;
 
   const maxColumns =
     12;
