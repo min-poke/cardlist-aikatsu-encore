@@ -1315,7 +1315,7 @@ function shareToX() {
 
 
   const text =
-    "🎀アイカツ！アンコール🎀\nカード所持率チェッカー\n" +
+    "🎀 アイカツ！アンコール 🎀\nカード所持率チェッカー\n" +
     `あなたの${tabLabel}${tabLabel ? "の" : ""}カード所持率は${percentage}%でした。`;
 
 
@@ -2514,7 +2514,7 @@ async function saveCollectionImage() {
 
 
     ctx.fillText(
-      "🎀アイカツ！アンコール カード所持状況🎀",
+      "🎀 アイカツ！アンコール カード所持状況 🎀",
       horizontalPadding,
       18
     );
