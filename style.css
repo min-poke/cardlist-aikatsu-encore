@@ -108,7 +108,7 @@ header h1 {
 .actions {
   display: flex;
 
-  gap: 8px;
+  gap: 10px;
 
   justify-content: center;
 
@@ -117,12 +117,29 @@ header h1 {
   flex-wrap: wrap;
 }
 
-.btn {
-  border: none;
+
+/* =========================================================
+   ヘッダー内ボタン共通
+   すべてクリア・画像保存・X投稿を同じ幅にする
+========================================================= */
+
+.btn,
+.x-share-btn {
+  width: 110px;
+
+  min-width: 110px;
+
+  height: 36px;
+
+  display: inline-flex;
+
+  align-items: center;
+
+  justify-content: center;
+
+  box-sizing: border-box;
 
   border-radius: 999px;
-
-  padding: 8px 15px;
 
   font-family: inherit;
 
@@ -130,17 +147,25 @@ header h1 {
 
   font-weight: 700;
 
+  line-height: 1;
+
+  white-space: nowrap;
+
   cursor: pointer;
+
+  text-decoration: none;
+
+  border: none;
 
   transition:
     transform 0.15s,
     box-shadow 0.15s,
     opacity 0.15s;
-
-  white-space: nowrap;
 }
 
-.btn:active {
+
+.btn:active,
+.x-share-btn:active {
   transform: scale(0.95);
 }
 
@@ -193,8 +218,6 @@ header h1 {
   justify-content: center;
 
   gap: 7px;
-
-  padding: 8px 16px;
 
   background: #000;
 
