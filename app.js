@@ -1964,6 +1964,167 @@ async function drawCardToCanvas(
 
 
 /* =========================================================
+   保存画像の横枚数を自動計算
+========================================================= */
+
+/*
+  保存画像全体を
+  おおよそ「3 : 4（横 : 縦）」に近づける。
+
+  横枚数は6〜12枚の範囲。
+
+  カード自体は 59 : 86 の縦長比率。
+
+  タイトル・タブ名・所持率などの
+  上部スペースも計算に含める。
+
+  そのため、単純に
+
+    カード枚数 ÷ 列数
+
+  だけではなく、
+
+    Canvas全体の横幅
+    Canvas全体の高さ
+
+  を実際に計算して、
+  3:4に最も近い列数を選択する。
+*/
+
+function calculateSaveColumns(cardCount) {
+
+  const minColumns =
+    6;
+
+  const maxColumns =
+    12;
+
+
+  /*
+    カードサイズ
+
+    保存画像では、
+    横枚数が変わってもカードが
+    小さくなりすぎないようにする。
+  */
+
+  const cardWidth =
+    160;
+
+
+  /*
+    カード比率
+
+    59 : 86
+  */
+
+  const cardHeight =
+    Math.round(
+      cardWidth *
+      86 /
+      59
+    );
+
+
+  const gap =
+    8;
+
+
+  const horizontalPadding =
+    24;
+
+
+  const topArea =
+    100;
+
+
+  const bottomPadding =
+    24;
+
+
+  /*
+    目標比率
+
+    横 : 縦 = 3 : 4
+  */
+
+  const targetRatio =
+    3 / 4;
+
+
+  let bestColumns =
+    minColumns;
+
+
+  let bestDifference =
+    Infinity;
+
+
+  for (
+    let columns = minColumns;
+    columns <= maxColumns;
+    columns++
+  ) {
+
+    const rows =
+      Math.ceil(
+        cardCount /
+        columns
+      );
+
+
+    const canvasWidth =
+      horizontalPadding * 2 +
+      columns * cardWidth +
+      (columns - 1) * gap;
+
+
+    const canvasHeight =
+      topArea +
+      rows * cardHeight +
+      (rows - 1) * gap +
+      bottomPadding;
+
+
+    const ratio =
+      canvasWidth /
+      canvasHeight;
+
+
+    /*
+      目標3:4からの差
+    */
+
+    const difference =
+      Math.abs(
+        ratio -
+        targetRatio
+      );
+
+
+    /*
+      より3:4に近いものを採用
+    */
+
+    if (
+      difference <
+      bestDifference
+    ) {
+
+      bestDifference =
+        difference;
+
+      bestColumns =
+        columns;
+    }
+  }
+
+
+  return bestColumns;
+}
+
+
+/* =========================================================
    所持状況を画像として保存
 ========================================================= */
 
@@ -2016,19 +2177,28 @@ async function saveCollectionImage() {
        保存画像設定
     ===================================================== */
 
-    const columns =
-      15;
+    /*
+      横6〜12枚の中から、
+      画像全体が3:4に最も近くなる
+      列数を自動計算する。
+    */
 
+    const columns =
+      calculateSaveColumns(
+        cards.length
+      );
+
+
+    /*
+      カードサイズ
+
+      縦長カード比率
+      59 : 86
+    */
 
     const cardWidth =
       160;
 
-
-    /*
-      縦長カード比率
-
-      59 : 86
-    */
 
     const cardHeight =
       Math.round(
@@ -2048,6 +2218,10 @@ async function saveCollectionImage() {
 
     const topArea =
       100;
+
+
+    const bottomPadding =
+      24;
 
 
     /*
@@ -2081,7 +2255,7 @@ async function saveCollectionImage() {
       topArea +
       rows * cardHeight +
       (rows - 1) * gap +
-      24;
+      bottomPadding;
 
 
     const ctx =
