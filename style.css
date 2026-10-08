@@ -342,7 +342,90 @@ header h1 {
 
   align-items: center;
 
+  gap: 8px;
+
   padding: 10px 12px 2px;
+}
+
+/* =========================================================
+   パラレル表示切り替えボタン
+========================================================= */
+
+.parallel-toggle {
+  display: inline-flex;
+
+  align-items: center;
+
+  justify-content: center;
+
+  min-width: 120px;
+
+  padding: 6px 13px;
+
+  border: 1px solid #f2a7c9;
+
+  border-radius: 999px;
+
+  background: rgba(255, 255, 255, 0.95);
+
+  color: #e56b9f;
+
+  font-family: inherit;
+
+  font-size: 0.8rem;
+
+  font-weight: 700;
+
+  cursor: pointer;
+
+  box-shadow:
+    0 1px 4px rgba(200, 90, 140, 0.12);
+
+  transition:
+    background 0.2s,
+    color 0.2s,
+    transform 0.15s,
+    box-shadow 0.2s;
+}
+
+
+.parallel-toggle:hover {
+  background: #fff1f8;
+
+  box-shadow:
+    0 2px 6px rgba(200, 90, 140, 0.18);
+}
+
+
+.parallel-toggle:active {
+  transform: scale(0.94);
+}
+
+
+/*
+  パラレル表示中
+
+  次の操作が
+  「パラレルを非表示」
+  になる状態
+*/
+
+.parallel-toggle.is-active {
+  background: #f783b6;
+
+  border-color: #f783b6;
+
+  color: #fff;
+
+  box-shadow:
+    0 2px 5px rgba(200, 90, 140, 0.25);
+}
+
+
+.parallel-toggle.is-active:hover {
+  background: #e965a3;
+
+  border-color: #e965a3;
 }
 
 .display-toggle {
@@ -609,12 +692,11 @@ header h1 {
 
 
   /*
-    PC版では
-    拡大・縮小ボタン自体を完全に非表示
+    PCでは拡大縮小ボタンを表示しない
   */
 
-  .display-controls {
-    display: none !important;
+  #displayToggleBtn {
+    display: none;
   }
 
 }

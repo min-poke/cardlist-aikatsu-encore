@@ -30,6 +30,19 @@ let isExpanded = true;
 
 
 /* =========================================================
+   パラレルカード表示設定
+========================================================= */
+
+// false = パラレル非表示
+// true  = パラレル表示
+//
+// 初回アクセス時・共有リンクからのアクセス時も
+// 必ず false から開始する。
+
+let showParallel = false;
+
+
+/* =========================================================
    所持データ読み込み
 ========================================================= */
 
@@ -76,10 +89,20 @@ function loadOwned() {
 
 function saveOwned() {
 
-  localStorage.setItem(
-    STORAGE_KEY,
-    JSON.stringify(owned)
-  );
+  try {
+
+    localStorage.setItem(
+      STORAGE_KEY,
+      JSON.stringify(owned)
+    );
+
+  } catch (error) {
+
+    console.warn(
+      "所持データの保存に失敗しました。",
+      error
+    );
+  }
 }
 
 
@@ -92,6 +115,10 @@ function getCardCount(cardId) {
   const count =
     Number(owned[cardId] || 0);
 
+  if (!Number.isFinite(count)) {
+    return 0;
+  }
+
   if (count < 0) {
     return 0;
   }
@@ -100,7 +127,55 @@ function getCardCount(cardId) {
     return 3;
   }
 
-  return count;
+  return Math.floor(count);
+}
+
+
+/* =========================================================
+   パラレルカード判定
+========================================================= */
+
+/*
+  cards.jsでは、
+
+    E1-01_PR
+    E1-01_PR_p1
+
+  のように命名している。
+
+  parallelOfプロパティは使用せず、
+  "_p1" を取り除いて通常カードIDを取得する。
+*/
+
+function getParallelBaseId(card) {
+
+  if (!card || card.parallel !== true) {
+    return null;
+  }
+
+  const suffix =
+    "_p1";
+
+  if (!card.id.endsWith(suffix)) {
+    return null;
+  }
+
+  return card.id.slice(
+    0,
+    -suffix.length
+  );
+}
+
+
+/* =========================================================
+   通常カード取得
+========================================================= */
+
+function getNormalCards() {
+
+  return CARDS.filter(card => {
+    return !card.parallel;
+  });
 }
 
 
@@ -111,7 +186,9 @@ function getCardCount(cardId) {
 function getOwnedCount(cardList = CARDS) {
 
   return cardList.filter(card => {
+
     return getCardCount(card.id) > 0;
+
   }).length;
 }
 
@@ -153,15 +230,118 @@ function getActiveTab() {
    タブに対応するカード一覧
 ========================================================= */
 
+/*
+  重要：
+
+  CARDS自体の並び順は絶対に変更しない。
+
+  共有URLではCARDSのindexを使用しているため、
+  パラレルカードを途中へ追加してはいけない。
+
+  CARDSでは、
+
+    E1通常カード
+    E2通常カード
+    ...
+    promo
+    パラレルカード
+
+  の順番を維持する。
+
+  画面表示時だけ、
+
+    E1-01_PR
+    E1-01_PR_p1
+    E1-02_PR
+    E1-02_PR_p1
+
+  のようにパラレルを通常カードの直後へ挿入する。
+*/
+
 function getCardsForTab(tab) {
 
-  if (tab === "all") {
-    return CARDS;
+  /*
+    まず通常カードだけを取得。
+
+    ここでパラレルカードを除外することで、
+    パラレル表示ON時に
+
+      通常
+      ↓
+      パラレルを挿入
+      ↓
+      元々のパラレルも表示
+
+    という二重表示を防ぐ。
+  */
+
+  let cards =
+    getNormalCards();
+
+
+  /*
+    シリーズ指定
+  */
+
+  if (tab !== "all") {
+
+    cards =
+      cards.filter(card => {
+
+        return String(card.series) ===
+          String(tab);
+
+      });
   }
 
-  return CARDS.filter(card => {
-    return card.series === tab;
+
+  /*
+    パラレル非表示
+  */
+
+  if (!showParallel) {
+
+    return cards;
+  }
+
+
+  /*
+    パラレル表示
+
+    通常カードの直後に、
+    対応するパラレルカードを挿入する。
+  */
+
+  const result = [];
+
+
+  cards.forEach(card => {
+
+    result.push(card);
+
+
+    const parallelCard =
+      CARDS.find(candidate => {
+
+        return (
+          candidate.parallel === true &&
+          getParallelBaseId(candidate) ===
+            card.id
+        );
+
+      });
+
+
+    if (parallelCard) {
+
+      result.push(
+        parallelCard
+      );
+    }
   });
+
+
+  return result;
 }
 
 
@@ -201,12 +381,15 @@ function setupTabs() {
 
 
   /*
-    cards.js内に存在するシリーズを取得
+    cards.js内に存在する
+    通常カードのシリーズを取得
   */
 
   const seriesList = [
     ...new Set(
-      CARDS.map(card => String(card.series))
+      CARDS
+        .filter(card => !card.parallel)
+        .map(card => String(card.series))
     )
   ];
 
@@ -226,6 +409,7 @@ function setupTabs() {
     const bNumber =
       b.match(/\d+/);
 
+
     if (aNumber && bNumber) {
 
       return (
@@ -234,13 +418,16 @@ function setupTabs() {
       );
     }
 
+
     if (aNumber) {
       return -1;
     }
 
+
     if (bNumber) {
       return 1;
     }
+
 
     return a.localeCompare(b);
   });
@@ -318,10 +505,22 @@ function setupTabs() {
     以前のタブを復元
   */
 
-  const active =
-    tabsContainer.querySelector(
-      `.tab[data-tab="${CSS.escape(currentTab)}"]`
-    );
+  let active = null;
+
+
+  try {
+
+    active =
+      tabsContainer.querySelector(
+        `.tab[data-tab="${CSS.escape(currentTab)}"]`
+      );
+
+  } catch (error) {
+
+    active =
+      null;
+  }
+
 
   if (active) {
 
@@ -370,6 +569,8 @@ function setupTabs() {
 
           updateDisplayToggle();
 
+          updateParallelToggle();
+
           shareToX();
         }
       );
@@ -409,24 +610,24 @@ function render() {
 
 
   /*
-  拡大状態
+    拡大状態
 
-  true  → 横3枚
-  false → 横6枚
-*/
+    true  → 横3枚
+    false → 横6枚
+  */
 
-if (isExpanded) {
+  if (isExpanded) {
 
-  grid.classList.remove(
-    "expanded"
-  );
+    grid.classList.remove(
+      "expanded"
+    );
 
-} else {
+  } else {
 
-  grid.classList.add(
-    "expanded"
-  );
-}
+    grid.classList.add(
+      "expanded"
+    );
+  }
 
 
   /*
@@ -455,6 +656,19 @@ if (isExpanded) {
 
     item.dataset.id =
       card.id;
+
+
+    /*
+      パラレルカードには
+      parallelクラスを追加
+    */
+
+    if (card.parallel) {
+
+      item.classList.add(
+        "parallel-card"
+      );
+    }
 
 
     /*
@@ -669,6 +883,7 @@ function bytesToBase64Url(bytes) {
 
   let binary = "";
 
+
   for (
     let i = 0;
     i < bytes.length;
@@ -748,11 +963,28 @@ function base64UrlToBytes(str) {
    所持状況 → 圧縮データ
 ========================================================= */
 
+/*
+  ここは絶対に表示用リストを使わない。
+
+  共有URLはCARDSのindexを基準にするため、
+  必ず元のCARDSを使用する。
+
+  パラレルカードもCARDSの末尾に存在するため、
+  その所持状況も共有データへ含まれる。
+
+  既存カードの順番を変更しない限り、
+  既存の共有URLは維持される。
+*/
+
 function encodeState() {
 
   const counts =
     CARDS.map(card => {
-      return getCardCount(card.id);
+
+      return getCardCount(
+        card.id
+      );
+
     });
 
 
@@ -813,7 +1045,9 @@ function encodeState() {
   ) {
 
     const count =
-      counts[i] & 0b11;
+      getCardCount(
+        CARDS[i].id
+      ) & 0b11;
 
 
     const byteIndex =
@@ -838,6 +1072,14 @@ function encodeState() {
 /* =========================================================
    圧縮データ → 所持状況
 ========================================================= */
+
+/*
+  ここも必ずCARDSを使用する。
+
+  表示用リストにはパラレルが
+  動的に挿入されるため、
+  共有URLの復号には使わない。
+*/
 
 function decodeState(hash) {
 
@@ -976,15 +1218,15 @@ function shareToX() {
     getPercentage(list);
 
 
-const tabLabel =
-  activeTab === "all"
-    ? ""
-    : getSeriesLabel(activeTab);
+  const tabLabel =
+    activeTab === "all"
+      ? ""
+      : getSeriesLabel(activeTab);
 
 
-const text =
-  "アイカツ！アンコール カード所持率チェッカー\n" +
-  `あなたの${tabLabel}${tabLabel ? "の" : ""}カード所持率は${percentage}%でした。`;
+  const text =
+    "アイカツ！アンコール カード所持率チェッカー\n" +
+    `あなたの${tabLabel}${tabLabel ? "の" : ""}カード所持率は${percentage}%でした。`;
 
 
   const shareUrl =
@@ -1020,13 +1262,13 @@ const text =
 /*
   スマホのみ使用。
 
-  通常状態
-    → 「拡大」表示
-    → ＋
-
-  拡大状態
-    → 「縮小」表示
+  現在3枚表示
+    → 「縮小」
     → −
+
+  現在6枚表示
+    → 「拡大」
+    → ＋
 */
 
 function updateDisplayToggle() {
@@ -1058,21 +1300,16 @@ function updateDisplayToggle() {
     現在の表示状態に応じて、
     「押したらどうなるか」を表示する。
 
-    3枚表示（大きい・拡大状態）
-      → 押すと6枚表示になる
+    3枚表示
+      → 押すと6枚表示
       → 「縮小 −」
 
-    6枚表示（小さい・縮小状態）
-      → 押すと3枚表示になる
+    6枚表示
+      → 押すと3枚表示
       → 「拡大 ＋」
   */
 
   if (isExpanded) {
-
-    /*
-      現在：3枚表示
-      → 次は縮小
-    */
 
     if (label) {
 
@@ -1100,11 +1337,6 @@ function updateDisplayToggle() {
 
 
   } else {
-
-    /*
-      現在：6枚表示
-      → 次は拡大
-    */
 
     if (label) {
 
@@ -1183,6 +1415,112 @@ function setupDisplayToggle() {
 
 
 /* =========================================================
+   パラレル表示切り替え
+========================================================= */
+
+function updateParallelToggle() {
+
+  const button =
+    document.getElementById(
+      "parallelToggleBtn"
+    );
+
+
+  if (!button) {
+    return;
+  }
+
+
+  if (showParallel) {
+
+    /*
+      現在パラレル表示中
+      → 次の操作は「非表示」
+    */
+
+    button.textContent =
+      "パラレルを非表示";
+
+
+    button.classList.add(
+      "is-active"
+    );
+
+
+    button.setAttribute(
+      "aria-pressed",
+      "true"
+    );
+
+
+  } else {
+
+    /*
+      現在パラレル非表示
+      → 次の操作は「表示」
+    */
+
+    button.textContent =
+      "パラレルを表示";
+
+
+    button.classList.remove(
+      "is-active"
+    );
+
+
+    button.setAttribute(
+      "aria-pressed",
+      "false"
+    );
+  }
+}
+
+
+function setupParallelToggle() {
+
+  const button =
+    document.getElementById(
+      "parallelToggleBtn"
+    );
+
+
+  if (!button) {
+    return;
+  }
+
+
+  button.addEventListener(
+    "click",
+    () => {
+
+      showParallel =
+        !showParallel;
+
+
+      render();
+
+      updateStats();
+
+      updateParallelToggle();
+
+      shareToX();
+    }
+  );
+
+
+  /*
+    初期状態
+
+    パラレル非表示
+    → 「パラレルを表示」
+  */
+
+  updateParallelToggle();
+}
+
+
+/* =========================================================
    ヘッダー高さ
 ========================================================= */
 
@@ -1250,26 +1588,6 @@ function loadImage(src) {
    Canvasへカード画像を描画
 ========================================================= */
 
-/*
-  サイト表示と同じ考え方で描画する。
-
-  通常の縦長カード：
-    元画像をcontain
-
-  横長カード：
-    1. 元画像を145.76%相当に拡大
-    2. 中央を基準に90度回転
-    3. 回転後の実寸比率を維持
-    4. 保存用カード枠の中に収める
-
-  未所持カード：
-    Canvasのfilterには頼らず、
-    描画後のピクセルを直接グレースケール化する。
-
-    これによりPC・スマホで
-    保存画像の色が変わらない。
-*/
-
 async function drawCardToCanvas(
   ctx,
   card,
@@ -1327,16 +1645,8 @@ async function drawCardToCanvas(
       imageHeight;
 
 
-    /*
-      Canvasのfilterには頼らない。
-
-      特にスマホのSafari等では
-      ctx.filter の挙動が不安定な場合があるため、
-      画像を描画した後にピクセルそのものを
-      グレースケール化する。
-    */
-
-    ctx.filter = "none";
+    ctx.filter =
+      "none";
 
 
     /* =====================================================
@@ -1344,10 +1654,6 @@ async function drawCardToCanvas(
     ===================================================== */
 
     if (!landscape) {
-
-      /*
-        元画像をカード枠にcontain。
-      */
 
       const scale =
         Math.min(
@@ -1389,41 +1695,19 @@ async function drawCardToCanvas(
 
     } else {
 
-      /*
-        サイト側CSSと同じ倍率。
-
-          width: 145.76%;
-          transform:
-            translate(-50%, -50%)
-            rotate(90deg);
-      */
-
       const cssScale =
         1.4576;
 
 
-      /*
-        回転前の画像幅
-      */
-
       const drawWidthBeforeRotate =
         width * cssScale;
 
-
-      /*
-        元画像の比率を完全維持して
-        回転前の高さを算出。
-      */
 
       const drawHeightBeforeRotate =
         drawWidthBeforeRotate *
         imageHeight /
         imageWidth;
 
-
-      /*
-        90度回転後の見かけ上のサイズ
-      */
 
       const rotatedWidth =
         drawHeightBeforeRotate;
@@ -1432,11 +1716,6 @@ async function drawCardToCanvas(
       const rotatedHeight =
         drawWidthBeforeRotate;
 
-
-      /*
-        保存用カード枠に収める。
-        比率は変更しない。
-      */
 
       const fitScale =
         Math.min(
@@ -1456,10 +1735,6 @@ async function drawCardToCanvas(
         fitScale;
 
 
-      /*
-        中央を基準に90度回転
-      */
-
       ctx.save();
 
 
@@ -1473,10 +1748,6 @@ async function drawCardToCanvas(
         Math.PI / 2
       );
 
-
-      /*
-        元画像の比率を維持したまま描画
-      */
 
       ctx.drawImage(
         img,
@@ -1497,15 +1768,6 @@ async function drawCardToCanvas(
 
     if (count === 0) {
 
-      /*
-        Canvasのctx.filterではなく、
-        実際に描画されたピクセルを取得して
-        RGB値を書き換える。
-
-        これならスマホでも確実に
-        保存画像をグレーにできる。
-      */
-
       const imageData =
         ctx.getImageData(
           Math.round(x),
@@ -1518,20 +1780,6 @@ async function drawCardToCanvas(
       const data =
         imageData.data;
 
-
-      /*
-        CSSの
-
-          grayscale(100%)
-          brightness(0.7)
-
-        に近い見た目にする。
-
-        人間の視覚に合わせた輝度計算：
-          R 21.26%
-          G 71.52%
-          B  7.22%
-      */
 
       for (
         let i = 0;
@@ -1561,17 +1809,8 @@ async function drawCardToCanvas(
 
         data[i + 2] =
           darkGray;
-
-        /*
-          Alpha値(data[i + 3])は変更しない。
-        */
       }
 
-
-      /*
-        グレースケール化した画像を
-        元の位置へ戻す。
-      */
 
       ctx.putImageData(
         imageData,
@@ -1581,11 +1820,8 @@ async function drawCardToCanvas(
     }
 
 
-    /*
-      念のためCanvasのfilterを初期状態に戻す。
-    */
-
-    ctx.filter = "none";
+    ctx.filter =
+      "none";
 
 
     /* =====================================================
@@ -1690,10 +1926,6 @@ async function drawCardToCanvas(
     );
 
 
-    /*
-      エラー時
-    */
-
     ctx.fillStyle =
       "#eeeeee";
 
@@ -1729,6 +1961,7 @@ async function drawCardToCanvas(
     );
   }
 }
+
 
 /* =========================================================
    所持状況を画像として保存
@@ -1783,17 +2016,9 @@ async function saveCollectionImage() {
        保存画像設定
     ===================================================== */
 
-    /*
-      1行15枚
-    */
-
     const columns =
       15;
 
-
-    /*
-      カード幅
-    */
 
     const cardWidth =
       160;
@@ -1947,17 +2172,17 @@ async function saveCollectionImage() {
       "bold 18px sans-serif";
 
 
-    /*
-      タブ名の長さに応じて
-      「所持」の開始位置を自動調整する。
-    */
     const tabWidth =
-      ctx.measureText(tabLabel).width;
+      ctx.measureText(
+        tabLabel
+      ).width;
+
 
     const ownedX =
       horizontalPadding +
       tabWidth +
       24;
+
 
     ctx.fillText(
       `所持：${getOwnedCount(cards)} / ${cards.length}枚（${getPercentage(cards)}%）`,
@@ -2241,6 +2466,9 @@ function init() {
 
   /*
     URL共有データを優先
+
+    showParallelは変更しない。
+    初期値falseのまま。
   */
 
   applyHash();
@@ -2279,6 +2507,13 @@ function init() {
   */
 
   setupDisplayToggle();
+
+
+  /*
+    パラレル表示
+  */
+
+  setupParallelToggle();
 
 
   /*

@@ -16,20 +16,43 @@
  * 新しいシリーズは、既存のEシリーズの後ろ、
  * promoの前に追加します。
  *
- * id      : 公式 images/cardlist/card/ の画像ファイル名（拡張子なし）
- * rarity  : N / R / PR / ER
- * series  : "1" = 1弾, "2" = 2弾, ... "promo" = プロモーション
- * image   : GitHubの images/cards/ フォルダに置くパス
+ * id       : カード識別子
+ * rarity   : N / R / PR / ER
+ * series   : "1" = 1弾, "2" = 2弾, ... "promo" = プロモーション
+ * image    : images/cards/ フォルダに置く画像パス
+ * parallel : true = パラレルカード
+ *
+ * パラレルカードについて：
+ *
+ *   通常カード
+ *     E1-01_PR
+ *
+ *   パラレルカード
+ *     E1-01_PR_p1
+ *
+ * パラレルカードは共有URLの既存indexを壊さないため、
+ * 通常カードの直後には配列上では挿入しない。
+ *
+ * 表示時にJavaScript側で
+ *
+ *   E1-01_PR
+ *   E1-01_PR_p1
+ *   E1-02_PR
+ *   E1-02_PR_p1
+ *
+ * のように並べる。
  */
 
 const CARDS = [
   // ========================================
-  // E1（全85枚）
+  // E1（通常カード 全85枚）
   // ========================================
+
   { id: "E1-01_PR", name: "E1-01 PR", rarity: "PR", series: "1", image: "images/cards/E1-01_PR.webp" },
   { id: "E1-02_PR", name: "E1-02 PR", rarity: "PR", series: "1", image: "images/cards/E1-02_PR.webp" },
   { id: "E1-03_PR", name: "E1-03 PR", rarity: "PR", series: "1", image: "images/cards/E1-03_PR.webp" },
   { id: "E1-04_PR", name: "E1-04 PR", rarity: "PR", series: "1", image: "images/cards/E1-04_PR.webp" },
+
   { id: "E1-05_R", name: "E1-05 R", rarity: "R", series: "1", image: "images/cards/E1-05_R.webp" },
   { id: "E1-06_R", name: "E1-06 R", rarity: "R", series: "1", image: "images/cards/E1-06_R.webp" },
   { id: "E1-07_R", name: "E1-07 R", rarity: "R", series: "1", image: "images/cards/E1-07_R.webp" },
@@ -123,34 +146,30 @@ const CARDS = [
   { id: "E1-84_N", name: "E1-84 N", rarity: "N", series: "1", image: "images/cards/E1-84_N.webp" },
   { id: "E1-85_N", name: "E1-85 N", rarity: "N", series: "1", image: "images/cards/E1-85_N.webp" },
 
-
   // ========================================
   // E2
   // ========================================
   // ここにE2のカードを追加
-
 
   // ========================================
   // E3
   // ========================================
   // ここにE3のカードを追加
 
-
   // ========================================
   // E4
   // ========================================
   // ここにE4のカードを追加
-
 
   // ========================================
   // E5以降
   // ========================================
   // E6, E7 ... も同じ形式でここに追加
 
+  // ========================================
+  // プロモーション
+  // ========================================
 
-  // ========================================
-  // プロモーション（全22枚）
-  // ========================================
   { id: "EP-001_N", name: "EP-001 N", rarity: "N", series: "promo", image: "images/cards/EP-001_N.webp" },
   { id: "EP-002_PR", name: "EP-002 PR", rarity: "PR", series: "promo", image: "images/cards/EP-002_PR.webp" },
   { id: "EP-003_N", name: "EP-003 N", rarity: "N", series: "promo", image: "images/cards/EP-003_N.webp" },
@@ -169,6 +188,7 @@ const CARDS = [
   { id: "EP-016_N", name: "EP-016 N", rarity: "N", series: "promo", image: "images/cards/EP-016_N.webp" },
   { id: "EP-017_N", name: "EP-017 N", rarity: "N", series: "promo", image: "images/cards/EP-017_N.webp" },
   { id: "EP-018_N", name: "EP-018 N", rarity: "N", series: "promo", image: "images/cards/EP-018_N.webp" },
+
   { id: "EP-029_R", name: "EP-029 R", rarity: "R", series: "promo", image: "images/cards/EP-029_R.webp" },
   { id: "EP-030_R", name: "EP-030 R", rarity: "R", series: "promo", image: "images/cards/EP-030_R.webp" },
   { id: "EP-031_R", name: "EP-031 R", rarity: "R", series: "promo", image: "images/cards/EP-031_R.webp" },
@@ -179,4 +199,30 @@ const CARDS = [
   { id: "EP-036_R", name: "EP-036 R", rarity: "R", series: "promo", image: "images/cards/EP-036_R.webp" },
   { id: "EP-037_N", name: "EP-037 N", rarity: "N", series: "promo", image: "images/cards/EP-037_N.webp" },
   { id: "EP-038_N", name: "EP-038 N", rarity: "N", series: "promo", image: "images/cards/EP-038_N.webp" },
+
+  // ========================================
+  // パラレルカード
+  //
+  // 注意：
+  // 既存カードの共有URL indexを壊さないため、
+  // ここでは通常カードとは分離して登録する。
+  //
+  // 表示時に通常カードの直後へ挿入する。
+  // ========================================
+
+  { id: "E1-01_PR_p1", name: "E1-01 PR パラレル", rarity: "PR", series: "1", image: "images/cards/E1-01_PR_p1.webp", parallel: true },
+  { id: "E1-02_PR_p1", name: "E1-02 PR パラレル", rarity: "PR", series: "1", image: "images/cards/E1-02_PR_p1.webp", parallel: true },
+  { id: "E1-03_PR_p1", name: "E1-03 PR パラレル", rarity: "PR", series: "1", image: "images/cards/E1-03_PR_p1.webp", parallel: true },
+  { id: "E1-04_PR_p1", name: "E1-04 PR パラレル", rarity: "PR", series: "1", image: "images/cards/E1-04_PR_p1.webp", parallel: true },
+
+  { id: "E1-30_ER_p1", name: "E1-30 ER パラレル", rarity: "ER", series: "1", image: "images/cards/E1-30_ER_p1.webp", parallel: true },
+  { id: "E1-31_ER_p1", name: "E1-31 ER パラレル", rarity: "ER", series: "1", image: "images/cards/E1-31_ER_p1.webp", parallel: true },
+  { id: "E1-32_ER_p1", name: "E1-32 ER パラレル", rarity: "ER", series: "1", image: "images/cards/E1-32_ER_p1.webp", parallel: true },
+
+  { id: "E1-33_PR_p1", name: "E1-33 PR パラレル", rarity: "PR", series: "1", image: "images/cards/E1-33_PR_p1.webp", parallel: true },
+  { id: "E1-34_PR_p1", name: "E1-34 PR パラレル", rarity: "PR", series: "1", image: "images/cards/E1-34_PR_p1.webp", parallel: true },
+  { id: "E1-35_PR_p1", name: "E1-35 PR パラレル", rarity: "PR", series: "1", image: "images/cards/E1-35_PR_p1.webp", parallel: true },
+  { id: "E1-36_PR_p1", name: "E1-36 PR パラレル", rarity: "PR", series: "1", image: "images/cards/E1-36_PR_p1.webp", parallel: true },
+
+  { id: "E1-50_ER_p1", name: "E1-50 ER パラレル", rarity: "ER", series: "1", image: "images/cards/E1-50_ER_p1.webp", parallel: true },
 ];
