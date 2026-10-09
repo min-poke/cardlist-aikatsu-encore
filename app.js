@@ -514,22 +514,26 @@ function setupAccordionSettings() {
       });
     }
 
-    // メニューの外側をクリック・タップしたら閉じる。
+    // メニュー外をクリック・タップしたら閉じ、
+    // そのクリックがカードなどに伝わらないようにする。
     document.addEventListener("click", event => {
       const isOpen =
         toggle.getAttribute("aria-expanded") === "true";
 
       if (!isOpen) return;
 
-      // 表示ボタン自体を押した場合は、上の開閉処理に任せる。
+      // 表示ボタン自体のクリックは通常どおり処理する。
       if (toggle.contains(event.target)) return;
 
-      // メニュー内部の設定項目を押した場合は閉じない。
+      // メニュー内部の設定項目は通常どおり操作できる。
       if (panel.contains(event.target)) return;
 
+      // メニュー外へのクリック処理をここで止める。
+      event.preventDefault();
+      event.stopPropagation();
+
       setPanelOpen(false);
-    });
-  }
+    }, true);
 
   const multiValues = {
     count: ["0", "1", "2", "3plus"],
