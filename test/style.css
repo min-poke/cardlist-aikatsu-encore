@@ -1,0 +1,688 @@
+/* =========================================================
+   基本設定
+========================================================= */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family: "Hiragino Maru Gothic ProN", "Hiragino Maru Gothic Pro",
+    "Yu Gothic", "YuGothic", "Meiryo", sans-serif;
+  font-weight: 500;
+  color: #333;
+  margin: 0;
+  padding-bottom: 40px;
+  min-height: 100vh;
+  background-color: #fff7fd;
+  background-image:
+    linear-gradient(58deg, #ffebfa 26%, transparent 26.5%),
+    linear-gradient(-58deg, #ffebfa 26%, transparent 26.5%),
+    linear-gradient(58deg, transparent 73.5%, #ffebfa 74%),
+    linear-gradient(-58deg, transparent 73.5%, #ffebfa 74%);
+  background-size: 52px 80px;
+  background-position: 0 0, 0 0, 0 0, 0 0;
+  background-attachment: fixed;
+}
+
+/* =========================================================
+   ヘッダー
+========================================================= */
+header {
+  background: linear-gradient(135deg, #fb76b8 0%, #ff8fc7 50%, #ff9ecd 100%);
+  color: #fff;
+  padding: 16px;
+  text-align: center;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+header h1 {
+  font-family: inherit;
+  font-size: 1.25rem;
+  line-height: 1.3;
+  font-weight: 700;
+  margin-bottom: 12px;
+  letter-spacing: 0.03em;
+  text-shadow: 0 1px 2px rgba(180, 60, 120, 0.2);
+}
+
+.actions {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.btn,
+.x-share-btn {
+  width: 110px;
+  min-width: 110px;
+  height: 36px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  font-family: inherit;
+  font-size: 0.9rem;
+  font-weight: 700;
+  line-height: 1;
+  white-space: nowrap;
+  cursor: pointer;
+  text-decoration: none;
+  border: none;
+  transition: transform 0.15s, box-shadow 0.15s, opacity 0.15s;
+}
+
+.btn:active,
+.x-share-btn:active {
+  transform: scale(0.95);
+}
+
+.btn.danger {
+  background: #ff5570;
+  color: #fff;
+  box-shadow: 0 2px 5px rgba(200, 40, 80, 0.25);
+}
+
+.btn.danger:hover {
+  background: #ff4261;
+}
+
+.btn.save {
+  background: #fff;
+  color: #e85b9d;
+  box-shadow: 0 2px 5px rgba(180, 70, 130, 0.2);
+}
+
+.btn.save:hover {
+  background: #fff5fa;
+}
+
+.x-share-btn {
+  gap: 7px;
+  background: #000;
+  color: #fff;
+  transition: transform 0.15s, background 0.15s;
+}
+
+.x-share-btn:hover {
+  background: #222;
+  transform: scale(0.97);
+}
+
+.x-share-btn:active {
+  transform: scale(0.94);
+}
+
+.x-share-btn svg {
+  flex-shrink: 0;
+}
+
+/* =========================================================
+   タブ
+========================================================= */
+.tabs {
+  display: flex;
+  background: rgba(255, 255, 255, 0.98);
+  border-bottom: 1px solid #f0dce8;
+  position: sticky;
+  top: var(--header-height, 110px);
+  z-index: 90;
+  box-shadow: 0 2px 5px rgba(180, 100, 140, 0.08);
+}
+
+.tab {
+  flex: 1;
+  min-width: 0;
+  padding: 13px 4px 11px;
+  border: none;
+  background: transparent;
+  font-family: inherit;
+  font-size: 0.92rem;
+  font-weight: 700;
+  color: #999;
+  cursor: pointer;
+  transition: color 0.2s, background 0.2s;
+  position: relative;
+}
+
+.tab:hover {
+  background: #fff7fb;
+  color: #e88bb5;
+}
+
+.tab.active {
+  color: #f06aa9;
+  background: #fff;
+  border-bottom: 3px solid #fb76b8;
+}
+
+/* =========================================================
+   所持率・表示ボタン行
+========================================================= */
+.stats-row {
+  position: relative;
+  z-index: 95;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 8px 10px;
+  background: rgba(255, 255, 255, 0.95);
+  border-bottom: 1px solid #f0e2ea;
+}
+
+.stats {
+  text-align: right;
+  padding: 10px 8px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #777;
+  background: rgba(255, 255, 255, 0.95);
+  border-bottom: 1px solid #f0e2ea;
+  letter-spacing: 0.02em;
+}
+
+.stats-row .stats {
+  flex: 1;
+  margin-left: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  text-align: center;
+  white-space: nowrap;
+}
+
+.stats span {
+  color: #e65b9c;
+  font-weight: 700;
+}
+
+/* =========================================================
+   表示設定ボタン
+========================================================= */
+.settings-toggle {
+  flex: 0 0 auto;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  width: 108px;
+  min-width: 108px;
+  height: 38px;
+  margin-left: 8px;
+  padding: 6px 30px;
+
+  border: 2px solid #f783b6;
+  border-radius: 9px;
+  background: #fff;
+  color: #e65b9c;
+
+  font: inherit;
+  font-size: 0.82rem;
+  font-weight: 800;
+  line-height: 1;
+  cursor: pointer;
+
+  box-shadow: 0 2px 5px rgba(200, 90, 140, 0.16);
+  transition:
+    background 0.2s,
+    color 0.2s,
+    transform 0.15s;
+}
+
+/* 「表示」はボタン全体の中央に固定 */
+.settings-toggle-label {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  display: block;
+  width: max-content;
+  margin: 0;
+  padding: 0;
+  line-height: 1;
+  white-space: nowrap;
+  pointer-events: none;
+}
+
+/* 矢印の外側：ボタン内の右端に固定 */
+.settings-toggle-icon {
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  pointer-events: none;
+}
+
+.settings-toggle-icon svg {
+  display: block;
+  width: 24px;
+  height: 24px;
+  flex-shrink: 0;
+  transition: transform 0.2s ease;
+}
+
+/* 開いているときは矢印を回転 */
+.settings-toggle[aria-expanded="true"] .settings-toggle-icon svg {
+  transform: rotate(180deg);
+}
+
+/* 開いているとき */
+.settings-toggle[aria-expanded="true"] {
+  background: #f783b6;
+  color: #fff;
+}
+
+/* 閉じているとき */
+.settings-toggle[aria-expanded="false"] {
+  background: #fff;
+  color: #e65b9c;
+}
+
+/* ホバー */
+.settings-toggle[aria-expanded="true"]:hover {
+  background: #e965a3;
+}
+
+.settings-toggle[aria-expanded="false"]:hover {
+  background: #fff5fa;
+}
+
+/* 押したとき */
+.settings-toggle:active {
+  transform: scale(0.96);
+}
+
+/* =========================================================
+   設定メニュー
+   カードに重ねてスライド表示
+========================================================= */
+.settings-panel {
+  position: absolute;
+  z-index: 94;
+  top: auto;
+  left: 10px;
+  right: 10px;
+  width: min(980px, calc(100% - 20px));
+  margin: 0 auto;
+  padding: 14px;
+  border: 1px solid #f4b6d2;
+  border-radius: 0 0 16px 16px;
+  background: rgba(255, 255, 255, 0.98);
+  box-shadow: 0 8px 20px rgba(150, 70, 115, 0.22);
+  transform: translateY(-12px);
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transition:
+    transform 260ms ease,
+    opacity 220ms ease,
+    visibility 260ms;
+}
+
+.settings-panel.is-open {
+  transform: translateY(0);
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+}
+
+.settings-panel[hidden] {
+  display: none !important;
+}
+
+.settings-group + .settings-group {
+  margin-top: 13px;
+  padding-top: 12px;
+  border-top: 1px dashed #f3c5da;
+}
+
+.settings-group h2 {
+  margin: 0 0 8px;
+  color: #d94f93;
+  font-size: 0.92rem;
+  font-weight: 800;
+}
+
+.settings-options {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.settings-options-two {
+  display: flex;
+  justify-content: flex-start;
+  gap: 8px;
+}
+
+.settings-options-two .choice-btn {
+  width: 100px;
+}
+
+/* 設定項目ボタン */
+.choice-btn {
+  width: 100%;
+  min-width: 0;
+  min-height: 38px;
+  padding: 7px 8px;
+  border: 1px solid #f2a7c9;
+  border-radius: 999px;
+  background: #fff0f7;
+  color: #c45a89;
+  font: inherit;
+  font-size: 0.82rem;
+  font-weight: 700;
+  text-align: center;
+  white-space: nowrap;
+  cursor: pointer;
+  transition:
+    background 0.2s,
+    color 0.2s,
+    border-color 0.2s,
+    transform 0.15s;
+}
+
+.choice-btn:hover {
+  background: #ffe2ef;
+}
+
+.choice-btn[aria-pressed="true"] {
+  border-color: #e85d9e;
+  background: #e85d9e;
+  color: #fff;
+  box-shadow: 0 2px 5px rgba(200, 90, 140, 0.2);
+}
+
+/* =========================================================
+   カード一覧
+========================================================= */
+.card-grid {
+  display: grid;
+  grid-template-columns: repeat(10, minmax(0, 1fr));
+  gap: 10px;
+  padding: 14px 16px 24px;
+  width: 100%;
+  max-width: 1600px;
+  margin: 0 auto;
+}
+
+.card-item {
+  position: relative;
+  aspect-ratio: 59 / 86;
+  border-radius: 7px;
+  overflow: hidden;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.12);
+  cursor: pointer;
+  user-select: none;
+  background: #2a2a2a;
+  transition: transform 0.15s, box-shadow 0.15s;
+}
+
+.card-item:hover {
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.18);
+}
+
+.card-item:active {
+  transform: scale(0.95);
+}
+
+.card-item img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: block;
+  transition: none !important;
+}
+
+.card-item img.rotate-90 {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 145.76%;
+  height: auto;
+  max-width: none;
+  object-fit: contain;
+  transform: translate(-50%, -50%) rotate(90deg);
+  transform-origin: center center;
+}
+
+.card-item.unowned img {
+  filter: grayscale(100%) brightness(0.7);
+}
+
+.card-item.unowned.unowned-color img {
+  filter: none;
+}
+
+/* 所持数バッジ */
+.badge {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  min-width: 33px;
+  height: 33px;
+  background: #ff4757;
+  color: #fff;
+  font-size: 18px;
+  font-weight: 700;
+  border-radius: 16.5px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 7px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+  z-index: 10;
+  line-height: 1;
+}
+
+.badge.hidden {
+  display: none;
+}
+
+.badge.badge-zero {
+  background: #1689ff;
+}
+
+/* =========================================================
+   PC
+========================================================= */
+@media (min-width: 769px) {
+  .card-grid {
+    grid-template-columns: repeat(10, minmax(0, 1fr));
+  }
+}
+
+/* =========================================================
+   タブレット
+========================================================= */
+@media (min-width: 601px) and (max-width: 768px) {
+  .card-grid {
+    grid-template-columns: repeat(8, minmax(0, 1fr));
+    gap: 9px;
+    padding-left: 12px;
+    padding-right: 12px;
+  }
+}
+
+/* =========================================================
+   スマホ
+========================================================= */
+@media (max-width: 600px) {
+  header {
+    padding: 13px 10px 12px;
+  }
+
+  header h1 {
+    font-size: 1.08rem;
+    margin-bottom: 10px;
+  }
+
+  .actions {
+    gap: 6px;
+  }
+
+  .btn,
+  .x-share-btn {
+    padding: 7px 11px;
+    font-size: 0.78rem;
+  }
+
+  .tabs {
+    top: var(--header-height, 105px);
+  }
+
+  .tab {
+    padding: 11px 2px 9px;
+    font-size: 0.82rem;
+  }
+
+  .stats-row {
+    gap: 7px;
+    padding: 8px 6px;
+  }
+
+  .settings-toggle {
+    width: 108px;
+    min-width: 108px;
+    height: 38px;
+    margin-left: 5px;
+    padding: 6px 30px;
+  }
+
+  .stats-row .stats {
+    font-size: 0.75rem;
+    padding: 0;
+  }
+
+  .settings-panel {
+    left: 6px;
+    right: 6px;
+    width: calc(100% - 12px);
+    padding: 12px 10px;
+    border-radius: 0 0 14px 14px;
+  }
+
+  .settings-options {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 5px;
+  }
+
+  .settings-options-two .choice-btn {
+    width: 92px;
+  }
+
+  .choice-btn {
+    min-height: 36px;
+    padding: 6px 2px;
+    font-size: 0.72rem;
+  }
+
+  .card-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 8px;
+    padding: 10px 8px 20px;
+  }
+
+  .card-grid.expanded {
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+    gap: 4px;
+    padding-left: 5px;
+    padding-right: 5px;
+  }
+
+  .card-item {
+    border-radius: 5px;
+  }
+
+  .badge {
+    top: 2px;
+    right: 2px;
+    min-width: 27px;
+    height: 27px;
+    font-size: 15px;
+    border-radius: 13.5px;
+    padding: 0 5px;
+  }
+}
+
+/* =========================================================
+   小さいスマホ
+========================================================= */
+@media (max-width: 400px) {
+  .actions {
+    gap: 5px;
+  }
+
+  .btn,
+  .x-share-btn {
+    padding: 7px 9px;
+    font-size: 0.74rem;
+  }
+
+  .settings-options-two .choice-btn {
+    width: 82px;
+  }
+
+  .settings-toggle {
+    width: 104px;
+    min-width: 104px;
+    height: 38px;
+    margin-left: 5px;
+    padding: 6px 28px;
+  }
+
+  .settings-toggle-icon {
+    right: 6px;
+  }
+
+  .card-grid {
+    gap: 6px;
+    padding-left: 6px;
+    padding-right: 6px;
+  }
+
+  .card-grid.expanded {
+    gap: 3px;
+    padding-left: 3px;
+    padding-right: 3px;
+  }
+}
+
+/* =========================================================
+   保存中などの状態
+========================================================= */
+.is-saving {
+  opacity: 0.65;
+  pointer-events: none;
+}
+
+/* =========================================================
+   アニメーションを減らす設定の端末への配慮
+========================================================= */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+  }
+}
