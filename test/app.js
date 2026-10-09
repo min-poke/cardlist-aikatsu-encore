@@ -119,7 +119,9 @@ function getCardsForStats(tab = getActiveTab()) {
   let cards = getNormalCards();
 
   if (tab !== "all") {
-    cards = cards.filter(card => String(card.series) === String(tab));
+    cards = cards.filter(
+      card => String(card.series) === String(tab)
+    );
   }
 
   if (showParallel) {
@@ -133,6 +135,18 @@ function getCardsForStats(tab = getActiveTab()) {
       )
     ];
   }
+
+  // レアリティフィルターを集計にも反映
+  cards = cards.filter(card =>
+    rarityFilters.has(String(card.rarity))
+  );
+
+  // 所持数フィルターを集計にも反映
+  cards = cards.filter(card => {
+    const count = getCardCount(card.id);
+    const key = String(count === 3 ? "3plus" : count);
+    return countFilters.has(key);
+  });
 
   return cards;
 }
@@ -500,22 +514,26 @@ function setupAccordionSettings() {
       });
     }
 
-    // メニューの外側をクリック・タップしたら閉じる。
+    // メニュー外をクリック・タップしたら閉じ、
+    // そのクリックがカードなどに伝わらないようにする。
     document.addEventListener("click", event => {
       const isOpen =
         toggle.getAttribute("aria-expanded") === "true";
 
       if (!isOpen) return;
 
-      // 表示ボタン自体を押した場合は、上の開閉処理に任せる。
+      // 表示ボタン自体のクリックは通常どおり処理する。
       if (toggle.contains(event.target)) return;
 
-      // メニュー内部の設定項目を押した場合は閉じない。
+      // メニュー内部の設定項目は通常どおり操作できる。
       if (panel.contains(event.target)) return;
 
+      // メニュー外へのクリック処理をここで止める。
+      event.preventDefault();
+      event.stopPropagation();
+
       setPanelOpen(false);
-    });
-  }
+    }, true);
 
   const multiValues = {
     count: ["0", "1", "2", "3plus"],
@@ -539,6 +557,8 @@ function setupAccordionSettings() {
         });
 
         render();
+        updateStats();
+        shareToX();
 
       } else if (setting === "parallel") {
         showParallel = value === "show";
@@ -762,7 +782,7 @@ async function drawCardToCanvas(ctx, card, count, x, y, width, height) {
 
     if (count > 0 || (count === 0 && unownedDisplay === "color")) {
       const badgeText = count >= 3 ? "3+" : String(count);
-      const badgeSize = Math.max(22, Math.round(width * 0.20));
+      const badgeSize = Math.max(28, Math.round(width * 0.25));
       const radius = badgeSize / 2;
       const badgeX = x + width - radius - 5;
       const badgeY = y + radius + 5;
@@ -773,7 +793,7 @@ async function drawCardToCanvas(ctx, card, count, x, y, width, height) {
       ctx.fill();
 
       ctx.fillStyle = "#fff";
-      ctx.font = `bold ${Math.max(12, Math.round(badgeSize * 0.48))}px sans-serif`;
+      ctx.font = `900 ${Math.max(16, Math.round(badgeSize * 0.52))}px sans-serif`;
       ctx.textAlign = "center";
       ctx.textBaseline = "middle";
       ctx.fillText(badgeText, badgeX, badgeY);
@@ -891,24 +911,38 @@ async function saveCollectionImage() {
       18
     );
 
-    const tabLabel = activeTab === "all"
-      ? "すべて"
-      : getSeriesLabel(activeTab);
+   const tabLabel = activeTab === "all"
+  ? "すべて"
+  : getSeriesLabel(activeTab);
 
-    ctx.fillStyle = "#e85b9d";
-    ctx.font = "bold 18px sans-serif";
-    ctx.fillText(tabLabel, horizontalPadding, 58);
+// 選択中のレアリティを取得
+const rarityLabel = ["PR", "R", "N", "ER"]
+  .filter(rarity => rarityFilters.has(rarity))
+  .join(" / ") || "該当なし";
 
-    ctx.fillStyle = "#e85b9d";
+ctx.fillStyle = "#e85b9d";
+ctx.font = "bold 18px sans-serif";
 
-    const ownedX =
-      horizontalPadding + ctx.measureText(tabLabel).width + 24;
+// タブ名
+ctx.fillText(tabLabel, horizontalPadding, 58);
 
-    ctx.fillText(
-      `所持：${getOwnedCount(cards)} / ${cards.length}枚（${getPercentage(cards)}%）`,
-      ownedX,
-      58
-    );
+// レアリティをタブ名の右側に表示
+const tabWidth = ctx.measureText(tabLabel).width;
+const rarityX = horizontalPadding + tabWidth + 16;
+
+ctx.font = "bold 16px sans-serif";
+ctx.fillText(rarityLabel, rarityX, 59);
+
+// 所持枚数の表示位置をレアリティの長さに合わせる
+const rarityWidth = ctx.measureText(rarityLabel).width;
+const ownedX = rarityX + rarityWidth + 24;
+
+ctx.font = "bold 18px sans-serif";
+ctx.fillText(
+  `所持：${getOwnedCount(cards)} / ${cards.length}枚（${getPercentage(cards)}%）`,
+  ownedX,
+  58
+);
 
     for (let i = 0; i < cards.length; i++) {
       const row = Math.floor(i / columns);
