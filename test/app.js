@@ -499,6 +499,22 @@ function setupAccordionSettings() {
         panel.classList.add("is-open");
       });
     }
+
+    // メニューの外側をクリック・タップしたら閉じる。
+    document.addEventListener("click", event => {
+      const isOpen =
+        toggle.getAttribute("aria-expanded") === "true";
+
+      if (!isOpen) return;
+
+      // 表示ボタン自体を押した場合は、上の開閉処理に任せる。
+      if (toggle.contains(event.target)) return;
+
+      // メニュー内部の設定項目を押した場合は閉じない。
+      if (panel.contains(event.target)) return;
+
+      setPanelOpen(false);
+    });
   }
 
   const multiValues = {
@@ -624,12 +640,24 @@ function setupAccordionSettings() {
 
 function updateStickyHeaderHeight() {
   const header = document.querySelector("header");
-  if (!header) return;
+  const tabs = document.querySelector(".tabs");
 
-  document.documentElement.style.setProperty(
-    "--header-height",
-    `${header.offsetHeight}px`
-  );
+  if (header) {
+    document.documentElement.style.setProperty(
+      "--header-height",
+      `${header.offsetHeight}px`
+    );
+  }
+
+  if (header && tabs) {
+    const tabsBottom =
+      header.offsetHeight + tabs.offsetHeight;
+
+    document.documentElement.style.setProperty(
+      "--tabs-bottom",
+      `${tabsBottom}px`
+    );
+  }
 }
 
 /* =========================================================

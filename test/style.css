@@ -143,7 +143,7 @@ header h1 {
 .tab {
   flex: 1;
   min-width: 0;
-  padding: 13px 4px 11px;
+  padding: 10px 4px 8px;
   border: none;
   background: transparent;
   font-family: inherit;
@@ -170,14 +170,15 @@ header h1 {
    所持率・表示ボタン行
 ========================================================= */
 .stats-row {
-  position: relative;
+  position: sticky;
+  top: var(--tabs-bottom, 110px);
   z-index: 95;
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 10px;
-  padding: 8px 10px;
-  background: rgba(255, 255, 255, 0.95);
+  padding: 5px 10px;
+  background: rgba(255, 255, 255, 0.97);
   border-bottom: 1px solid #f0e2ea;
 }
 
@@ -193,7 +194,12 @@ header h1 {
 }
 
 .stats-row .stats {
-  flex: 1;
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  width: max-content;
+  max-width: calc(100% - 120px);
+
   margin-left: 0;
   padding: 0;
   border: 0;
@@ -217,11 +223,11 @@ header h1 {
   align-items: center;
   justify-content: center;
 
-  width: 108px;
+  width: 160px;
   min-width: 108px;
-  height: 38px;
+  height: 34px;
   margin-left: 8px;
-  padding: 6px 30px;
+  padding: 6px 26px;
 
   border: 2px solid #f783b6;
   border-radius: 9px;
@@ -549,7 +555,7 @@ header h1 {
   }
 
   .tab {
-    padding: 11px 2px 9px;
+    padding: 9px 2px 7px;
     font-size: 0.82rem;
   }
 
@@ -559,8 +565,8 @@ header h1 {
   }
 
   .settings-toggle {
-    width: 108px;
-    min-width: 108px;
+    width: 96px;
+    min-width: 96px;
     height: 38px;
     margin-left: 5px;
     padding: 6px 30px;
@@ -641,8 +647,8 @@ header h1 {
   }
 
   .settings-toggle {
-    width: 104px;
-    min-width: 104px;
+    width: 96px;
+    min-width: 96px;
     height: 38px;
     margin-left: 5px;
     padding: 6px 28px;
