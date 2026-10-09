@@ -534,6 +534,7 @@ function setupAccordionSettings() {
 
       setPanelOpen(false);
     }, true);
+  }
 
   const multiValues = {
     count: ["0", "1", "2", "3plus"],
@@ -600,6 +601,8 @@ function setupAccordionSettings() {
 
         syncMultiChoice(setting, selected, values);
         render();
+        updateStats();
+        shareToX();
 
       } else if (setting === "unowned") {
         unownedDisplay = value;
@@ -782,7 +785,7 @@ async function drawCardToCanvas(ctx, card, count, x, y, width, height) {
 
     if (count > 0 || (count === 0 && unownedDisplay === "color")) {
       const badgeText = count >= 3 ? "3+" : String(count);
-      const badgeSize = Math.max(22, Math.round(width * 0.20));
+      const badgeSize = Math.max(28, Math.round(width * 0.25));
       const radius = badgeSize / 2;
       const badgeX = x + width - radius - 5;
       const badgeY = y + radius + 5;
@@ -793,7 +796,7 @@ async function drawCardToCanvas(ctx, card, count, x, y, width, height) {
       ctx.fill();
 
       ctx.fillStyle = "#fff";
-      ctx.font = `bold ${Math.max(12, Math.round(badgeSize * 0.48))}px sans-serif`;
+      ctx.font = `900 ${Math.max(16, Math.round(badgeSize * 0.52))}px sans-serif`;
       ctx.textAlign = "center";
       ctx.textBaseline = "middle";
       ctx.fillText(badgeText, badgeX, badgeY);
