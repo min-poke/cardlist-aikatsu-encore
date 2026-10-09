@@ -640,12 +640,24 @@ function setupAccordionSettings() {
 
 function updateStickyHeaderHeight() {
   const header = document.querySelector("header");
-  if (!header) return;
+  const tabs = document.querySelector(".tabs");
 
-  document.documentElement.style.setProperty(
-    "--header-height",
-    `${header.offsetHeight}px`
-  );
+  if (header) {
+    document.documentElement.style.setProperty(
+      "--header-height",
+      `${header.offsetHeight}px`
+    );
+  }
+
+  if (header && tabs) {
+    const tabsBottom =
+      header.offsetHeight + tabs.offsetHeight;
+
+    document.documentElement.style.setProperty(
+      "--tabs-bottom",
+      `${tabsBottom}px`
+    );
+  }
 }
 
 /* =========================================================
