@@ -534,6 +534,7 @@ function setupAccordionSettings() {
 
       setPanelOpen(false);
     }, true);
+  }
 
   const multiValues = {
     count: ["0", "1", "2", "3plus"],
