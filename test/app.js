@@ -601,6 +601,8 @@ function setupAccordionSettings() {
 
         syncMultiChoice(setting, selected, values);
         render();
+        updateStats();
+        shareToX();
 
       } else if (setting === "unowned") {
         unownedDisplay = value;
