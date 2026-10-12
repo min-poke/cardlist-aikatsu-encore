@@ -1059,14 +1059,6 @@ header h1 {
     top: 26px;
   }
 
-  #navArea.open .toggle_btn span:nth-child(1) {
-    top: 19px;
-  }
-
-  #navArea.open .toggle_btn span:nth-child(3) {
-    top: 19px;
-  }
-
   #navArea #siteMenu {
     width: min(280px, 84vw);
     padding: 76px 20px 24px;
@@ -1158,7 +1150,8 @@ header h1 {
 #navArea .toggle_btn span:nth-child(3) { top: 28px; }
 
 #navArea.open .toggle_btn span:nth-child(1) {
-  transform: translateY(7px) rotate(45deg);
+  top: 21px;
+  transform: rotate(45deg);
 }
 
 #navArea.open .toggle_btn span:nth-child(2) {
@@ -1166,7 +1159,8 @@ header h1 {
 }
 
 #navArea.open .toggle_btn span:nth-child(3) {
-  transform: translateY(-7px) rotate(-45deg);
+  top: 21px;
+  transform: rotate(-45deg);
 }
 
 /* メニューの背景 */
