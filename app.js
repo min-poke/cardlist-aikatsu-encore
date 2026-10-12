@@ -1025,7 +1025,7 @@ async function saveCollectionImage() {
 
     ctx.fillStyle = "#e85b9d";
     ctx.font = columns < 4
-      ? "bold 6px sans-serif"
+      ? "bold 9px sans-serif"
       : "bold 18px sans-serif";
 
     picTextY = columns < 4
@@ -1040,7 +1040,7 @@ async function saveCollectionImage() {
     const rarityX = horizontalPadding + tabWidth + 16;
 
     ctx.font = columns < 4
-      ? "bold 6px sans-serif"
+      ? "bold 9px sans-serif"
       : "bold 18px sans-serif";
 
     ctx.fillText(rarityLabel, rarityX, picTextY);
