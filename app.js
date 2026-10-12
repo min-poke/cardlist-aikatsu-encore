@@ -1029,17 +1029,20 @@ async function saveCollectionImage() {
       : "bold 18px sans-serif";
 
     picTextY = columns < 4
-      ? 20
+      ? 29
       : 58;
 
     // タブ名
-    ctx.fillText(tabLabel, horizontalPadding, 58);
+    ctx.fillText(tabLabel, horizontalPadding, picTextY);
 
     // レアリティをタブ名の右側に表示
     const tabWidth = ctx.measureText(tabLabel).width;
     const rarityX = horizontalPadding + tabWidth + 16;
 
-    ctx.font = "bold 16px sans-serif";
+    ctx.font = columns < 4
+      ? "bold 6px sans-serif"
+      : "bold 18px sans-serif";
+
     ctx.fillText(rarityLabel, rarityX, 59);
 
     // 所持枚数の表示位置をレアリティの長さに合わせる
