@@ -998,14 +998,20 @@ async function saveCollectionImage() {
     ctx.textAlign = "left";
     ctx.textBaseline = "top";
 
+    picTextY = 18;
+
     ctx.font = columns < 4
       ? "bold 15px sans-serif"
       : "bold 30px sans-serif";
 
+    picTextY = columns < 4
+      ? 9
+      : 18;
+
     ctx.fillText(
       "🎀 アイカツ！アンコール カード所持状況 🎀",
       horizontalPadding,
-      18
+      picTextY
     );
 
     const tabLabel = activeTab === "all"
@@ -1021,6 +1027,10 @@ async function saveCollectionImage() {
     ctx.font = columns < 4
       ? "bold 9px sans-serif"
       : "bold 18px sans-serif";
+
+    picTextY = columns < 4
+      ? 29
+      : 58;
 
     // タブ名
     ctx.fillText(tabLabel, horizontalPadding, 58);
@@ -1190,6 +1200,7 @@ function setupInfoModals() {
           <p>メニューに使い方、更新情報、お問い合わせ、免責事項の項目を追加しました。</p>
           <p>今後の更新内容もこちらに掲載していきます。</p>
           <p>「こんな機能がほしい！」などのご意見・ご要望も、お問い合わせ先までお気軽にお寄せください。</p>
+          <p>その他、軽微な不具合の修正を行いました。</p>
         </div>
         <div class="update-item">
           <span class="update-date">2026年10月10日</span>
@@ -1199,12 +1210,14 @@ function setupInfoModals() {
           <p>所持未所持絞り込み機能はカード枚数で絞り込みするよう変更しました。</p>
           <p>未所持カード：0枚で絞り込み  所持カード：1枚、2枚、3枚以上で絞り込み</p>
           <p>未所持カードをカラーでも表示できるように更新しました。</p>
+          <p>その他、軽微な不具合の修正を行いました。</p>
         </div>
         <div class="update-item">
           <span class="update-date">2026年10月9日</span>
           <strong>[パラレルを表示]ボタンを追加♪</strong>
           <p>[パラレルを表示]ボタンでパラレルカードの表示/非表示を切り替えられます。</p>
           <p>パラレルイラストのネタバレ防止のためサイトアクセス時は非表示になっています。</p>
+          <p>その他、軽微な不具合の修正を行いました。</p>
         </div>
         <div class="update-item">
           <span class="update-date">2026年10月8日</span>
