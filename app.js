@@ -1025,11 +1025,11 @@ async function saveCollectionImage() {
 
     ctx.fillStyle = "#e85b9d";
     ctx.font = columns < 4
-      ? "bold 9px sans-serif"
+      ? "bold 6px sans-serif"
       : "bold 18px sans-serif";
 
     picTextY = columns < 4
-      ? 29
+      ? 20
       : 58;
 
     // タブ名
