@@ -124,6 +124,7 @@ function getCardsForStats(tab = getActiveTab()) {
     );
   }
 
+  // パラレル表示設定を集計にも反映
   if (showParallel) {
     const baseIds = new Set(cards.map(card => card.id));
 
@@ -136,18 +137,12 @@ function getCardsForStats(tab = getActiveTab()) {
     ];
   }
 
-  // レアリティフィルターを集計にも反映
+  // レアリティフィルターは集計に反映
   cards = cards.filter(card =>
     rarityFilters.has(String(card.rarity))
   );
 
-  // 所持数フィルターを集計にも反映
-  cards = cards.filter(card => {
-    const count = getCardCount(card.id);
-    const key = String(count === 3 ? "3plus" : count);
-    return countFilters.has(key);
-  });
-
+  // 枚数フィルターは集計に適用しない
   return cards;
 }
 
