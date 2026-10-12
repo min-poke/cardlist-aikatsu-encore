@@ -1055,7 +1055,7 @@ async function saveCollectionImage() {
     ctx.fillText(
       `所持：${getOwnedCount(statsCards)} / ${statsCards.length}枚（${getPercentage(statsCards)}%）`,
       ownedX,
-      58
+      picTextY
     );
 
     for (let i = 0; i < cards.length; i++) {
