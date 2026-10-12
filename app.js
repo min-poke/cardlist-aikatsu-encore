@@ -1043,7 +1043,7 @@ async function saveCollectionImage() {
       ? "bold 6px sans-serif"
       : "bold 18px sans-serif";
 
-    ctx.fillText(rarityLabel, rarityX, 59);
+    ctx.fillText(rarityLabel, rarityX, picTextY);
 
     // 所持枚数の表示位置をレアリティの長さに合わせる
     const rarityWidth = ctx.measureText(rarityLabel).width;
