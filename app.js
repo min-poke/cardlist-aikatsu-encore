@@ -994,12 +994,15 @@ async function saveCollectionImage() {
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
     ctx.fillStyle = "#e85b9d";
-    ctx.font = "bold 30px sans-serif";
     ctx.textAlign = "left";
     ctx.textBaseline = "top";
 
+    ctx.font = columns < 4
+      ? "bold 15px sans-serif"
+      : "bold 30px sans-serif";
+
     ctx.fillText(
-      "🎀 アイカツ！アンコール\nカード所持状況 🎀",
+      "🎀 アイカツ！アンコール カード所持状況 🎀",
       horizontalPadding,
       18
     );
