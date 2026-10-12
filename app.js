@@ -972,7 +972,9 @@ async function saveCollectionImage() {
     const cardHeight = Math.round(cardWidth * 86 / 59);
     const gap = 8;
     const horizontalPadding = 24;
-    const topArea = 100;
+    const topArea = columns < 4
+      ? 50
+      : 100;
     const bottomPadding = 24;
     const rows = Math.ceil(cards.length / columns);
 
