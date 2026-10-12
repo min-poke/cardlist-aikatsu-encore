@@ -1,6 +1,7 @@
+
 /* =========================================================
    アイカツ！アンコール カード所持率チェッカー
-   ========================================================= */
+========================================================= */
 
 const STORAGE_KEY = "aikatsu_encore_owned";
 let owned = {};
@@ -14,17 +15,19 @@ let unownedDisplay = "gray"; // gray / color
 
 /* =========================================================
    所持データ
-   ========================================================= */
+========================================================= */
 
 function loadOwned() {
   try {
     const saved = localStorage.getItem(STORAGE_KEY);
+
     if (!saved) {
       owned = {};
       return;
     }
 
     const parsed = JSON.parse(saved);
+
     owned = parsed && typeof parsed === "object" && !Array.isArray(parsed)
       ? parsed
       : {};
@@ -44,7 +47,9 @@ function saveOwned() {
 
 function getCardCount(cardId) {
   const count = Number(owned[cardId] || 0);
+
   if (!Number.isFinite(count) || count < 0) return 0;
+
   return Math.min(3, Math.floor(count));
 }
 
@@ -54,17 +59,19 @@ function getOwnedCount(cardList = CARDS) {
 
 function getPercentage(cardList = CARDS) {
   if (!cardList.length) return "0.0";
+
   return (getOwnedCount(cardList) / cardList.length * 100).toFixed(1);
 }
 
 /* =========================================================
    カード取得・シリーズ情報
-   ========================================================= */
+========================================================= */
 
 function getParallelBaseId(card) {
   if (!card || card.parallel !== true || !card.id.endsWith("_p1")) {
     return null;
   }
+
   return card.id.slice(0, -3);
 }
 
@@ -78,7 +85,9 @@ function getActiveTab() {
 
 function getSeriesLabel(series) {
   if (series === "promo") return "プロモーション";
+
   const number = String(series).match(/\d+/);
+
   return number ? `${number[0]}弾` : String(series);
 }
 
@@ -148,10 +157,11 @@ function getCardsForStats(tab = getActiveTab()) {
 
 /* =========================================================
    タブ
-   ========================================================= */
+========================================================= */
 
 function setupTabs() {
   const tabsContainer = document.querySelector(".tabs");
+
   if (!tabsContainer) return;
 
   const seriesList = [
@@ -165,6 +175,7 @@ function setupTabs() {
     if (aNumber && bNumber) {
       return Number(aNumber[0]) - Number(bNumber[0]);
     }
+
     if (aNumber) return -1;
     if (bNumber) return 1;
 
@@ -181,14 +192,17 @@ function setupTabs() {
   allTab.type = "button";
   allTab.dataset.tab = "all";
   allTab.textContent = "すべて";
+
   tabsContainer.appendChild(allTab);
 
   seriesList.forEach(series => {
     const tab = document.createElement("button");
+
     tab.className = "tab";
     tab.type = "button";
     tab.dataset.tab = series;
     tab.textContent = getSeriesLabel(series);
+
     tabsContainer.appendChild(tab);
   });
 
@@ -222,10 +236,11 @@ function setupTabs() {
 
 /* =========================================================
    カード一覧の描画
-   ========================================================= */
+========================================================= */
 
 function render() {
   const grid = document.getElementById("cardGrid");
+
   if (!grid) return;
 
   const cards = getCardsForTab(getActiveTab());
@@ -237,6 +252,7 @@ function render() {
     const count = getCardCount(card.id);
 
     const item = document.createElement("div");
+
     item.className = `card-item${count === 0 ? " unowned" : ""}`;
     item.dataset.id = card.id;
 
@@ -249,6 +265,7 @@ function render() {
     }
 
     const img = document.createElement("img");
+
     img.src = card.image;
     img.alt = card.name || card.id;
     img.loading = "lazy";
@@ -269,6 +286,7 @@ function render() {
     }
 
     const badge = document.createElement("div");
+
     badge.className =
       `badge${count === 0 && unownedDisplay !== "color" ? " hidden" : ""}` +
       `${count === 0 ? " badge-zero" : ""}`;
@@ -297,7 +315,7 @@ function render() {
 
 /* =========================================================
    所持率・共有URL
-   ========================================================= */
+========================================================= */
 
 function updateStats() {
   const cards = getCardsForStats();
@@ -308,7 +326,10 @@ function updateStats() {
 
   if (totalCount) totalCount.textContent = cards.length;
   if (ownedCount) ownedCount.textContent = getOwnedCount(cards);
-  if (ownedPercentage) ownedPercentage.textContent = getPercentage(cards);
+
+  if (ownedPercentage) {
+    ownedPercentage.textContent = getPercentage(cards);
+  }
 }
 
 function bytesToBase64Url(bytes) {
@@ -394,9 +415,11 @@ function decodeState(hash) {
 
 function applyHash() {
   const hash = location.hash.slice(1);
+
   if (!hash) return;
 
   const decoded = decodeState(hash);
+
   if (decoded === null) return;
 
   owned = decoded;
@@ -430,12 +453,15 @@ function shareToX() {
     encodeURIComponent("アイカツ,アイカツアンコール,aikatsu,aikatsuencore");
 
   const shareBtn = document.getElementById("shareBtn");
-  if (shareBtn) shareBtn.href = shareUrl;
+
+  if (shareBtn) {
+    shareBtn.href = shareUrl;
+  }
 }
 
 /* =========================================================
    設定ボタン
-   ========================================================= */
+========================================================= */
 
 function syncMultiChoice(setting, selected, values) {
   const allSelected = values.every(value => selected.has(value));
@@ -444,6 +470,7 @@ function syncMultiChoice(setting, selected, values) {
     `.choice-btn[data-setting="${setting}"]`
   ).forEach(button => {
     const value = button.dataset.value;
+
     const pressed = value === "all"
       ? allSelected
       : selected.has(value);
@@ -474,8 +501,6 @@ function setupAccordionSettings() {
 
     if (open) {
       panel.hidden = false;
-
-      // アニメーションを確実に開始するため、クラスを一度外す。
       panel.classList.remove("is-open");
 
       requestAnimationFrame(() => {
@@ -496,11 +521,13 @@ function setupAccordionSettings() {
   if (toggle && panel) {
     toggle.addEventListener("click", () => {
       const isOpen = toggle.getAttribute("aria-expanded") === "true";
+
       setPanelOpen(!isOpen);
     });
 
     // 初期状態をHTMLのパネル状態に合わせる。
     const initiallyOpen = !panel.hidden;
+
     toggle.setAttribute("aria-expanded", String(initiallyOpen));
 
     if (initiallyOpen) {
@@ -509,19 +536,26 @@ function setupAccordionSettings() {
       });
     }
 
-    // メニュー外をクリック・タップしたら閉じ、
-    // そのクリックがカードなどに伝わらないようにする。
+    /*
+     * メニュー外をクリック・タップしたら閉じる。
+     * ただしハンバーガーメニュー内のクリックは横取りしない。
+     */
     document.addEventListener("click", event => {
       const isOpen =
         toggle.getAttribute("aria-expanded") === "true";
 
       if (!isOpen) return;
 
-      // 表示ボタン自体のクリックは通常どおり処理する。
       if (toggle.contains(event.target)) return;
-
-      // メニュー内部の設定項目は通常どおり操作できる。
       if (panel.contains(event.target)) return;
+
+      // ハンバーガーメニューを操作できるようにする。
+      const navArea = document.getElementById("navArea");
+
+      if (navArea && navArea.contains(event.target)) {
+        setPanelOpen(false);
+        return;
+      }
 
       // メニュー外へのクリック処理をここで止める。
       event.preventDefault();
@@ -574,6 +608,7 @@ function setupAccordionSettings() {
 
       } else if (setting === "count" || setting === "rarity") {
         const values = multiValues[setting];
+
         const selected = setting === "count"
           ? countFilters
           : rarityFilters;
@@ -653,8 +688,65 @@ function setupAccordionSettings() {
 }
 
 /* =========================================================
+   ハンバーガーメニュー
+========================================================= */
+
+function setupHamburgerMenu() {
+  const navArea = document.getElementById("navArea");
+  const toggle = document.getElementById("menuToggle");
+  const menu = document.getElementById("siteMenu");
+  const mask = document.getElementById("menuMask");
+
+  if (!navArea || !toggle || !menu || !mask) return;
+
+  function setMenuOpen(open) {
+    navArea.classList.toggle("open", open);
+
+    toggle.setAttribute("aria-expanded", String(open));
+    toggle.setAttribute(
+      "aria-label",
+      open ? "メニューを閉じる" : "メニューを開く"
+    );
+
+    menu.setAttribute("aria-hidden", String(!open));
+    menu.inert = !open;
+  }
+
+  // ボタンで開閉する。
+  toggle.addEventListener("click", () => {
+    const isOpen = toggle.getAttribute("aria-expanded") === "true";
+
+    setMenuOpen(!isOpen);
+  });
+
+  // 背景マスクを押したら閉じる。
+  mask.addEventListener("click", () => {
+    setMenuOpen(false);
+  });
+
+  // メニュー内のリンクを押したら閉じる。
+  menu.querySelectorAll("a").forEach(link => {
+    link.addEventListener("click", () => {
+      setMenuOpen(false);
+    });
+  });
+
+  // Escキーで閉じる。
+  document.addEventListener("keydown", event => {
+    if (event.key === "Escape") {
+      const isOpen = toggle.getAttribute("aria-expanded") === "true";
+
+      if (isOpen) {
+        setMenuOpen(false);
+        toggle.focus();
+      }
+    }
+  });
+}
+
+/* =========================================================
    ヘッダー高さ
-   ========================================================= */
+========================================================= */
 
 function updateStickyHeaderHeight() {
   const header = document.querySelector("header");
@@ -680,13 +772,14 @@ function updateStickyHeaderHeight() {
 
 /* =========================================================
    画像保存
-   ========================================================= */
+========================================================= */
 
 function loadImage(src) {
   return new Promise((resolve, reject) => {
     const img = new Image();
 
     img.onload = () => resolve(img);
+
     img.onerror = () => reject(
       new Error(`画像を読み込めませんでした: ${src}`)
     );
@@ -723,6 +816,7 @@ async function drawCardToCanvas(ctx, card, count, x, y, width, height) {
       );
     } else {
       const drawWidthBeforeRotate = width * 1.4576;
+
       const drawHeightBeforeRotate =
         drawWidthBeforeRotate * imageHeight / imageWidth;
 
@@ -815,7 +909,7 @@ async function drawCardToCanvas(ctx, card, count, x, y, width, height) {
 }
 
 function calculateSaveColumns(cardCount) {
-  const minColumns = 4;
+  const minColumns = 2;
   const maxColumns = 12;
   const cardWidth = 160;
   const cardHeight = Math.round(cardWidth * 86 / 59);
@@ -903,44 +997,45 @@ async function saveCollectionImage() {
     ctx.font = "bold 30px sans-serif";
     ctx.textAlign = "left";
     ctx.textBaseline = "top";
+
     ctx.fillText(
-      "🎀 アイカツ！アンコール カード所持状況 🎀",
+      "🎀 アイカツ！アンコール\nカード所持状況 🎀",
       horizontalPadding,
       18
     );
 
-   const tabLabel = activeTab === "all"
-  ? "すべて"
-  : getSeriesLabel(activeTab);
+    const tabLabel = activeTab === "all"
+      ? "すべて"
+      : getSeriesLabel(activeTab);
 
-// 選択中のレアリティを取得
-const rarityLabel = ["PR", "R", "N", "ER"]
-  .filter(rarity => rarityFilters.has(rarity))
-  .join(" / ") || "該当なし";
+    // 選択中のレアリティを取得
+    const rarityLabel = ["PR", "R", "N", "ER"]
+      .filter(rarity => rarityFilters.has(rarity))
+      .join(" / ") || "該当なし";
 
-ctx.fillStyle = "#e85b9d";
-ctx.font = "bold 18px sans-serif";
+    ctx.fillStyle = "#e85b9d";
+    ctx.font = "bold 18px sans-serif";
 
-// タブ名
-ctx.fillText(tabLabel, horizontalPadding, 58);
+    // タブ名
+    ctx.fillText(tabLabel, horizontalPadding, 58);
 
-// レアリティをタブ名の右側に表示
-const tabWidth = ctx.measureText(tabLabel).width;
-const rarityX = horizontalPadding + tabWidth + 16;
+    // レアリティをタブ名の右側に表示
+    const tabWidth = ctx.measureText(tabLabel).width;
+    const rarityX = horizontalPadding + tabWidth + 16;
 
-ctx.font = "bold 16px sans-serif";
-ctx.fillText(rarityLabel, rarityX, 59);
+    ctx.font = "bold 16px sans-serif";
+    ctx.fillText(rarityLabel, rarityX, 59);
 
-// 所持枚数の表示位置をレアリティの長さに合わせる
-const rarityWidth = ctx.measureText(rarityLabel).width;
-const ownedX = rarityX + rarityWidth + 24;
+    // 所持枚数の表示位置をレアリティの長さに合わせる
+    const rarityWidth = ctx.measureText(rarityLabel).width;
+    const ownedX = rarityX + rarityWidth + 24;
 
-ctx.font = "bold 18px sans-serif";
-ctx.fillText(
-  `所持：${getOwnedCount(cards)} / ${cards.length}枚（${getPercentage(cards)}%）`,
-  ownedX,
-  58
-);
+    ctx.font = "bold 18px sans-serif";
+    ctx.fillText(
+      `所持：${getOwnedCount(cards)} / ${cards.length}枚（${getPercentage(cards)}%）`,
+      ownedX,
+      58
+    );
 
     for (let i = 0; i < cards.length; i++) {
       const row = Math.floor(i / columns);
@@ -973,6 +1068,7 @@ ctx.fillText(
     const url = URL.createObjectURL(blob);
 
     const link = document.createElement("a");
+
     link.href = url;
     link.download = fileName;
 
@@ -1008,10 +1104,11 @@ function setupSaveImage() {
 
 /* =========================================================
    所持データのクリア
-   ========================================================= */
+========================================================= */
 
 function setupClearButton() {
   const clearBtn = document.getElementById("clearBtn");
+
   if (!clearBtn) return;
 
   clearBtn.addEventListener("click", () => {
@@ -1032,14 +1129,232 @@ function setupClearButton() {
 }
 
 /* =========================================================
+   メニュー項目の中央ウィンドウ
+========================================================= */
+
+function setupInfoModals() {
+  const navArea = document.getElementById("navArea");
+  const menu = document.getElementById("siteMenu");
+  const menuToggle = document.getElementById("menuToggle");
+
+  if (!navArea || !menu || !menuToggle) return;
+
+  // 二重登録を防止
+  if (document.querySelector(".info-modal-overlay")) return;
+
+  const modalContents = {
+
+    "about-site": {
+      title: "このサイトについて",
+      content: `
+        <p>「アイカツ！アンコールカード所持率チェッカー」は、カードの所持状況を記録・確認するための非公式ファン制作ツールです。</p>
+        <p>カードの所持状況をチェックしたり、画像として保存したり、Xで共有したりできます。</p>
+        <p>所持データはお使いのブラウザ内・共有リンクに保存されます。共有リンクには、リンクを作成した時点の所持状況が保存されます。所持データが管理者のサーバーに自動送信されることはありません。</p>
+        <p>更新情報や機能についてのご意見・ご要望は、お問い合わせメニューからお寄せください。</p>
+      `
+    },
+
+    "how-to-use": {
+      title: "使い方",
+      content: `
+        <p>アイカツ！アンコールのカード所持状況を記録できるチェッカーです。</p>
+        <ol>
+          <li>会員登録・ログイン不要で利用できます。</li>
+          <li>所持データはサーバーおよび管理者に送信・収集・保存されません。</li>
+          <li>タブで弾を選択できます。</li>
+          <li>カードをタップして、所持数を切り替えます。</li>
+          <li>所持枚数はタップごとに0→1→2→3+→0と切り替わります。</li>
+          <li>「表示」メニューから、カードサイズやレアリティ、所持数などの表示条件を変更できます。</li>
+          <li>画像保存やX共有を使って、所持状況を保存・共有できます。</li>
+        </ol>
+        <p class="notice">所持データは共有リンクに保存されます。ブラウザのデータを削除すると、記録が失われる場合があります。<br>
+        リンクをポスト、またはメモ帳などにコピーして保存してください。
+        </p>
+      `
+    },
+
+    "updates": {
+      title: "更新情報",
+      content: `
+        <div class="update-item">
+          <span class="update-date">2026年10月13日</span>
+          <strong>メニューを追加♪</strong>
+          <p>メニューに使い方、更新情報、お問い合わせ、免責事項の項目を追加しました。</p>
+          <p>今後の更新内容もこちらに掲載していきます。</p>
+          <p>「こんな機能がほしい！」などのご意見・ご要望も、お問い合わせ先までお気軽にお寄せください。</p>
+        </div>
+        <div class="update-item">
+          <span class="update-date">2026年10月10日</span>
+          <strong>[表示]ボタンを追加♪</strong>
+          <p>[表示]ボタンで表示するカードを絞り込めます。</p>
+          <p>従来のカードサイズ、パラレルカード表示、所持未所持絞り込み機能はこちらに移動しました。</p>
+          <p>所持未所持絞り込み機能はカード枚数で絞り込みするよう変更しました。</p>
+          <p>未所持カード：0枚で絞り込み  所持カード：1枚、2枚、3枚以上で絞り込み</p>
+          <p>未所持カードをカラーでも表示できるように更新しました。</p>
+        </div>
+        <div class="update-item">
+          <span class="update-date">2026年10月9日</span>
+          <strong>[パラレルを表示]ボタンを追加♪</strong>
+          <p>[パラレルを表示]ボタンでパラレルカードの表示/非表示を切り替えられます。</p>
+          <p>パラレルイラストのネタバレ防止のためサイトアクセス時は非表示になっています。</p>
+        </div>
+        <div class="update-item">
+          <span class="update-date">2026年10月8日</span>
+          <strong>プロモーションカードを追加♪</strong>
+          <p>10月8日セブンイレブンにて配布開始のプロモーションカードを追加しました。</p>
+        </div>
+        <div class="update-item">
+          <span class="update-date">2026年10月9日</span>
+          <strong>アイカツ！アンコール稼働開始♪</strong>
+          <p>アイカツ！アンコール稼働開始に合わせて本サイトをオープンしました！</p>
+          <p>アイカツ！アンコールのカードの所持率の確認や所持カードを画像で出力できるサイトです。</p>
+          <p>所持カードや未所持カードの確認、交換用の画像作成などにご活用ください！</p>
+        </div>
+      `
+    },
+
+    "contact": {
+      title: "お問い合わせ",
+      content: `
+        <p>不具合の報告、更新情報へのご意見、ご要望などがありましたら、Xのアカウントまでお気軽にご連絡ください。</p>
+        <p>更新情報、追加予定の機能など発信していますのでフォローお願いいたします！</p>
+        <p style="text-align:center;">
+          <a class="contact-link"
+             href="https://x.com/_min_pretty"
+             target="_blank"
+             rel="noopener noreferrer">
+            𝕏　@_min_pretty
+          </a>
+        </p>
+        <p>「こんなカード情報がほしい」「ここをもっと使いやすくしてほしい」といったご意見も歓迎しています。</p>
+        <p class="notice">当サイトに関して、公式運営元やゲームセンター等へのお問い合わせはご遠慮ください。</p>
+      `
+    },
+
+    "disclaimer": {
+      title: "免責事項",
+      content: `
+        <p>当サイトは、ファンが制作・運営する非営利の非公式サイトです。作品の公式運営元、権利者、関連企業等とは関係ありません。</p>
+        <p>掲載情報は、正確性・完全性・最新性を保証するものではありません。</p>
+        <p>当サイトの掲載内容・機能に関して、告知なく変更及び公開を終了する可能性があります。</p>
+        <p>当サイトの利用によって生じた損害および利用者間でのトラブルについて、運営者は責任を負いかねます。</p>
+        <p>作品名、ロゴ、画像その他の著作物・商標等に関する権利は、それぞれの権利者に帰属します。</p>
+      `
+    }
+
+  };
+
+  // ウィンドウを生成
+  const overlay = document.createElement("div");
+  overlay.className = "info-modal-overlay";
+  overlay.innerHTML = `
+    <section
+      class="info-modal"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="infoModalTitle"
+      tabindex="-1"
+    >
+      <header class="info-modal-header">
+        <h2 class="info-modal-title" id="infoModalTitle"></h2>
+        <button
+          type="button"
+          class="info-modal-close"
+          aria-label="ウィンドウを閉じる"
+        >×</button>
+      </header>
+      <div class="info-modal-content"></div>
+    </section>
+  `;
+
+  document.body.appendChild(overlay);
+
+  const modal = overlay.querySelector(".info-modal");
+  const modalTitle = overlay.querySelector(".info-modal-title");
+  const modalContent = overlay.querySelector(".info-modal-content");
+  const closeButton = overlay.querySelector(".info-modal-close");
+
+  let previousFocus = null;
+
+  function closeMenu() {
+    navArea.classList.remove("open");
+    menuToggle.setAttribute("aria-expanded", "false");
+    menuToggle.setAttribute("aria-label", "メニューを開く");
+    menu.setAttribute("aria-hidden", "true");
+    menu.setAttribute("inert", "");
+  }
+
+  function openModal(key) {
+    const data = modalContents[key];
+    if (!data) return;
+
+    previousFocus = menuToggle;
+
+    // メニューを閉じてからウィンドウを表示
+    closeMenu();
+
+    modalTitle.textContent = data.title;
+    modalContent.innerHTML = data.content;
+    modalContent.scrollTop = 0;
+
+    overlay.classList.add("is-visible");
+    document.body.style.overflow = "hidden";
+
+    closeButton.focus();
+  }
+
+  function closeModal() {
+    if (!overlay.classList.contains("is-visible")) return;
+
+    overlay.classList.remove("is-visible");
+    document.body.style.overflow = "";
+
+    if (previousFocus && document.contains(previousFocus)) {
+      previousFocus.focus();
+    }
+  }
+
+  // メニュー項目をクリック
+  menu.addEventListener("click", (event) => {
+    const button = event.target.closest("[data-modal]");
+    if (!button) return;
+
+    event.preventDefault();
+    openModal(button.dataset.modal);
+  });
+
+  // × ボタンで閉じる
+  closeButton.addEventListener("click", closeModal);
+
+  // ウィンドウの外側をクリックして閉じる
+  overlay.addEventListener("click", (event) => {
+    if (event.target === overlay) {
+      closeModal();
+    }
+  });
+
+  // Escape キーで閉じる
+  document.addEventListener("keydown", (event) => {
+    if (
+      event.key === "Escape" &&
+      overlay.classList.contains("is-visible")
+    ) {
+      closeModal();
+    }
+  });
+}
+
+/* =========================================================
    初期化
-   ========================================================= */
+========================================================= */
 
 function init() {
   loadOwned();
   applyHash();
   setupTabs();
   setupAccordionSettings();
+  setupHamburgerMenu();
+  setupInfoModals();
   render();
   updateStats();
   shareToX();
