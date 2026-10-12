@@ -960,6 +960,7 @@ async function saveCollectionImage() {
   try {
     const activeTab = getActiveTab();
     const cards = getCardsForTab(activeTab);
+    const statsCards = getCardsForStats(activeTab);
 
     if (!cards.length) {
       alert("保存するカードがありません。");
@@ -1017,7 +1018,9 @@ async function saveCollectionImage() {
       .join(" / ") || "該当なし";
 
     ctx.fillStyle = "#e85b9d";
-    ctx.font = "bold 18px sans-serif";
+    ctx.font = columns < 4
+      ? "bold 9px sans-serif"
+      : "bold 18px sans-serif";
 
     // タブ名
     ctx.fillText(tabLabel, horizontalPadding, 58);
@@ -1033,9 +1036,11 @@ async function saveCollectionImage() {
     const rarityWidth = ctx.measureText(rarityLabel).width;
     const ownedX = rarityX + rarityWidth + 24;
 
-    ctx.font = "bold 18px sans-serif";
+    ctx.font = columns < 4
+      ? "bold 9px sans-serif"
+      : "bold 18px sans-serif";
     ctx.fillText(
-      `所持：${getOwnedCount(cards)} / ${cards.length}枚（${getPercentage(cards)}%）`,
+      `所持：${getOwnedCount(statsCards)} / ${statsCards.length}枚（${getPercentage(statsCards)}%）`,
       ownedX,
       58
     );
