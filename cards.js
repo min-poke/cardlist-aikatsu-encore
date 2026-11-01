@@ -188,7 +188,10 @@ const CARDS = [
   { id: "EP-016_N", name: "EP-016 N", rarity: "N", series: "promo", image: "images/cards/EP-016_N.webp" },
   { id: "EP-017_N", name: "EP-017 N", rarity: "N", series: "promo", image: "images/cards/EP-017_N.webp" },
   { id: "EP-018_N", name: "EP-018 N", rarity: "N", series: "promo", image: "images/cards/EP-018_N.webp" },
-
+  { id: "EP-019_N", name: "EP-019 N", rarity: "N", series: "promo", image: "images/cards/EP-019_N.webp" },
+  { id: "EP-020_N", name: "EP-020 N", rarity: "N", series: "promo", image: "images/cards/EP-020_N.webp" },
+  { id: "EP-021_N", name: "EP-021 N", rarity: "N", series: "promo", image: "images/cards/EP-021_N.webp" },
+  { id: "EP-022_N", name: "EP-022 N", rarity: "N", series: "promo", image: "images/cards/EP-022_N.webp" },
   { id: "EP-029_R", name: "EP-029 R", rarity: "R", series: "promo", image: "images/cards/EP-029_R.webp" },
   { id: "EP-030_R", name: "EP-030 R", rarity: "R", series: "promo", image: "images/cards/EP-030_R.webp" },
   { id: "EP-031_R", name: "EP-031 R", rarity: "R", series: "promo", image: "images/cards/EP-031_R.webp" },
