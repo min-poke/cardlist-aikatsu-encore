@@ -1200,6 +1200,11 @@ function setupInfoModals() {
       title: "更新情報",
       content: `
         <div class="update-item">
+          <span class="update-date">2026年11月1日</span>
+          <strong>しまむらコラボカードを追加♪</strong>
+          <p>10月31日発売のしまむらコラボのカード4枚を追加しました。</p>
+        </div>
+        <div class="update-item">
           <span class="update-date">2026年10月13日</span>
           <strong>メニューを追加♪</strong>
           <p>メニューに使い方、更新情報、お問い合わせ、免責事項の項目を追加しました。</p>
