@@ -202,6 +202,7 @@ const CARDS = [
   { id: "EP-036_R", name: "EP-036 R", rarity: "R", series: "promo", image: "images/cards/EP-036_R.webp" },
   { id: "EP-037_N", name: "EP-037 N", rarity: "N", series: "promo", image: "images/cards/EP-037_N.webp" },
   { id: "EP-038_N", name: "EP-038 N", rarity: "N", series: "promo", image: "images/cards/EP-038_N.webp" },
+  { id: "EP-042_PR", name: "EP-042 PR", rarity: "PR", series: "promo", image: "images/cards/EP-042_PR.webp" },
 
   // ========================================
   // パラレルカード
